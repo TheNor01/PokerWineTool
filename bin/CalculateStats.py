@@ -4,6 +4,7 @@ import pandas as pd
 from matplotlib import pyplot as plt
 from statistics import mean
 import itertools
+import seaborn as sns
 
 #10 predictive features 
 # 
@@ -33,10 +34,10 @@ def ReadDataset(path):
 def DivideNumber(x):
     if(x>100): 
         temp = x/100
-        return round(temp, 2)
+        return '%.2f'%(temp)
     else:
         temp = x/10
-        return round(temp, 1)
+        return '%.1f'%(temp)
 
 if __name__ == "__main__":
     trainingDataset = ReadDataset("./bin/resources/poker-hand-training-true.data")
@@ -45,8 +46,8 @@ if __name__ == "__main__":
 
     #approssimo all suo intero
 
-    trainingSuit= trainingDataset[["S1", "S2", "S3", "S4", "S5"]]
-    trainingRank = trainingDataset[["R1", "R2", "R3", "R4","R5"]]
+    trainingSuit= trainingDataset[["S1", "S2", "S3", "S4", "S5","G"]]
+    trainingRank = trainingDataset[["R1", "R2", "R3", "R4","R5","G"]]
 
     
     print(trainingDataset)
@@ -77,7 +78,7 @@ if __name__ == "__main__":
     meanRank = mean(trainingRank.mean(axis=0).values).astype(int)
     print("AVERAGE RANK IS:",meanRank)
 
-    print("MOST COMMON CARD"+"("+str(meanSuit)+","+str(meanRank)+")")
+    print("MOST COMMON IPOTETICAL CARD"+"("+str(meanSuit)+","+str(meanRank)+")")
 
     #What if we calculate mean by grouping cards?
 
@@ -93,16 +94,19 @@ if __name__ == "__main__":
     trainingDataset['C4'] = (trainingSuit['S4'].map(str)+trainingRank['R4'].map(str)).astype(int)
     trainingDataset['C5'] = (trainingSuit['S5'].map(str)+trainingRank['R5'].map(str)).astype(int)
     
-    trainingCards = trainingDataset[["C1", "C2", "C3", "C4", "C5"]]
+    trainingCardsFull = trainingDataset[["C1", "C2", "C3", "C4", "C5","G"]]
+
+
+    print(trainingCardsFull)
+    trainingCards = trainingCardsFull[['C1', 'C2', 'C3','C4','C5']].applymap(DivideNumber)
+
+    #Float or integer number as 4,2 -> 42, and then zscore all?
 
     
+    trainingCards['G'] = trainingCardsFull['G']
 
-    trainingCards = trainingCards.applymap(DivideNumber) #to be fixed
-
-
-    print(trainingCards)
-    
-    valuesMode = trainingCards.mode(axis=0).iloc[0]
+    print("Mode")
+    valuesMode = trainingCards[['C1', 'C2', 'C3','C4','C5']].astype(float).mode(axis=0).iloc[0]
     print(valuesMode)
     axis = valuesMode.plot(kind='bar')
     axis.set_title("Mode cards, First value is always the Suit")
@@ -110,19 +114,47 @@ if __name__ == "__main__":
     #plt.show()
     axis.clear()
 
-    b_plot = trainingCards.boxplot(column = ['C1', 'C2', 'C3','C4','C5']) 
-    b_plot.plot()
+    
+    # Has it any sense?
+
+    #b_plot = trainingCards.astype(float).boxplot(column = ["C1"]) 
+    #b_plot.plot()
     #plt.show()
 
 
-    #Which combination of cards is mostly frequent?
+    #Which combination of poker hand is mostly frequent?
     auxCount = trainingCards[['C1', 'C2', 'C3','C4','C5']].value_counts()
     dictFreq = auxCount.to_dict() 
     print(dict(itertools.islice(dictFreq.items(), 5)))
     print(trainingCards[['C1', 'C2', 'C3','C4','C5']].value_counts(normalize=True).head(5))
 
+    #Suit and Ranks correlation: https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.Series.corr.html
 
-    #Which combination of cards is relevant for a Goal?
+    
+    #Using Pearson, maybe it's better to discard the case 0?
+    #We want to see if a card id related to label
+    print("Calculating CORR...")
+    corr = trainingCards.astype(float).corrwith(trainingCards['G'],axis=0)
+    print(corr[corr > 0.00001])
+    
+    #Seems that cards on C1,C3 are related to the poker hand, let's see which card are they
+    filter = trainingCards["G"] != 0.0
 
+    filterMax = trainingCards["G"] == 9.0
+    #auxCount = trainingCards[['C3','G']].where(filter,inplace=True).head(5)
+    #print(auxCount)
+
+    #CARD 4,10 seems to be very common for G != 0
+    print(trainingCards[['C3','G']].where(filter).value_counts(normalize=True).head(5))
+
+    #CARD 4,9 seems to be very common for G != 0
+    print(trainingCards[['C1','G']].where(filter).value_counts(normalize=True).head(5))
+
+    #CARD 1,10 seems to be very common for G == 9
+    print(trainingCards[['C1','G']].where(filterMax).value_counts(normalize=True).head(5))
+
+
+    #Seems like there isn't a strong correlation between card and label
+    #Also, correlation between features seems pretty rare, cause everytime there is a 
 
 

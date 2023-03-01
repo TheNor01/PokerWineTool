@@ -2,6 +2,11 @@ import numpy as np
 import pandas as pd
 
 from matplotlib import pyplot as plt
+import seaborn as sns
+from collections import Counter
+from numpy.random import seed
+from numpy.random import randint
+import random
 
 #10 predictive features 
 # 
@@ -56,7 +61,7 @@ def PrintShapeGraph(dataset):
     print("SIZE OF : (Records,Features)")
     print(dataset.shape)
 
-    g_classes = len(set(trainingDataset['G'].values))  # count distinct values
+    g_classes = len(set(dataset['G'].values))  # count distinct values
     poker_hands = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 
     hand_name = {
@@ -75,14 +80,15 @@ def PrintShapeGraph(dataset):
     print(g_classes)
     cls = {}
     for i in range(g_classes):
-        cls[i] = len(trainingDataset[trainingDataset.G==i])
+        cls[i] = len(dataset[dataset.G==i])
     print(cls)
 
     #classes are unbalanced
     plt.bar(poker_hands, [cls[i] for i in poker_hands], align='center')
     plt.xlabel('classes id')
     plt.ylabel('Number of instances')
-    plt.show()
+    #plt.show()
+
 
 if __name__ == "__main__":
     trainingDataset = ReadDataset("./bin/resources/poker-hand-training-true.data")
@@ -90,6 +96,8 @@ if __name__ == "__main__":
 
     print("### TRAINING ###")
     CheckIntegrityDataset(trainingDataset)
+
+    print(trainingDataset)
 
     #fare in modo che se c'è un false esce
     CheckIntegrityDataset(trainingDataset)
@@ -102,10 +110,63 @@ if __name__ == "__main__":
     print("\n\n### TESTING ###")
     testingDataset = ReadDataset("./bin/resources/poker-hand-testing.data")
     CheckIntegrityDataset(testingDataset)
+
+    plt.close()
     PrintShapeGraph(testingDataset)
 
 
     #print(trainingDataset[trainingDataset['G']==9])
     
 
+    #ScatterPlot, append al columns and S and R
+
+    plt.close()
+
+    allS = []
+    allR = []
+    for col in trainingDataset.columns:
+        #print(col)
+        filteredCol = list(trainingDataset[col].values)
+        if(str(col).startswith("S")):
+            print("S",str(col))
+            allS=allS+filteredCol
+        elif(str(col).startswith("R")):
+            print("R",str(col))
+            allR=allR+filteredCol
+        else:
+            continue
+
+    print(len(allS))
+    print(len(allR))
+
+    s = allS
+    r = allR
+
+    seed(1)
+    # generate some integers
+    indexes = random.sample(range(1, 125040), 8000)
+    #print(indexes)
+    subS  = [s[i] for i in indexes]
+    subR  = [r[i] for i in indexes]
+
+    """
+    c = Counter(zip(subS,subR))
+    # create a list of the sizes, here multiplied by 10 for scale
+    size = [1.5*c[(xx,yy)] for xx,yy in zip(subS,subR)]
+
+    # plot it
+    plt.scatter(subS, subR, s=size)
     
+    plt.show()
+    """
+
+    #I don't make any difference but a R5 could be a R1 in terms of position
+
+    dfHeat = pd.DataFrame()
+    dfHeat["subS"] = subS
+    dfHeat["subR"] = subR
+    df2 = pd.crosstab(dfHeat['subS'], dfHeat['subR']).div(len(dfHeat))
+    sns.heatmap(df2, annot=True)
+
+    #plt.close()
+    plt.show()
