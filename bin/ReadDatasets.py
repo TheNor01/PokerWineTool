@@ -29,6 +29,10 @@ import random
 #Questions 
     #We can regroup features: S1,C1 --->
     #We can balance samples??? For instance adding more examples of less frequent classes?
+
+    #What about discard 0 label rows
+
+    #Order Column ascendent based on RANK?
 #
 
 def ReadDataset(path):

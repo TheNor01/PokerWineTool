@@ -112,7 +112,12 @@ if __name__ == "__main__":
 
     
     #Actually we introduce the dummy variable in order to reduce range for Suit and Rank
-    #But is it necessary?
+
+    print("DUMMIES SUIT")
+    X_train = pd.get_dummies(X_train, columns = ["S1","S2","S3", "S4", "S5"]).copy()
+    print(X_train)
+
+    #But is it necessary? Feautures increases to 25
 
     # isPicche, isCuori, isQuadri, isFiori
 
