@@ -72,7 +72,7 @@ def BayesComputingClassification(X_train,y_train,X_test,y_test):
 
     cm = confusion_matrix(y_test, predictions, labels=clf.classes_)
     disp = ConfusionMatrixDisplay(confusion_matrix=cm,display_labels=clf.classes_).plot()
-    
+
     plt.plot()
 
 def TreeBased (X_train,y_train,X_test,y_test):
@@ -114,10 +114,10 @@ if __name__ == "__main__":
     #Map  bayes
 
     y_train = trainingDataset['G']
-    X_train = trainingDataset[['S1', 'R1','S2', 'R2','S3', 'R3','S4', 'R4','S5','R5','G']]
+    X_train = trainingDataset[['S1', 'R1','S2', 'R2','S3', 'R3','S4', 'R4','S5','R5']]
 
     y_test = testingDataset['G']
-    X_test = testingDataset[['S1', 'R1','S2', 'R2','S3', 'R3','S4', 'R4','S5','R5','G']]
+    X_test = testingDataset[['S1', 'R1','S2', 'R2','S3', 'R3','S4', 'R4','S5','R5']]
     
 
     y_values = set(y_train.values)
@@ -144,6 +144,9 @@ if __name__ == "__main__":
 
     suitPlot.plot.kde()
     #plt.show()  #comb
+
+
+    
     X_train_scored = pd.DataFrame()
     for col in X_train.columns:
         X_train_scored[str(col)+'_zscore'] = zscore(X_train[col])
@@ -158,13 +161,20 @@ if __name__ == "__main__":
     suitPlot_scored.plot.kde()
     #plt.show()  #comb
 
+    #Transformation dummies with 1/0 of ranks => bernulli event?!
+
     print(rankPlot_scored.describe())
 
     print("\n\n===================\n\n")
     print(suitPlot_scored.describe())
 
     BayesComputingClassification(X_train,y_train,X_test,y_test)
+    print("\n\n========\n\n")
+    #BayesComputingClassification(X_train_scored,y_train,X_test,y_test)
+    print("\n\n===================\n\n")
     TreeBased(X_train,y_train,X_test,y_test)
+    print("\n\n========\n\n")
+    TreeBased(X_train_scored,y_train,X_test,y_test)
 
 
 

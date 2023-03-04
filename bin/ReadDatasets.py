@@ -93,6 +93,47 @@ def PrintShapeGraph(dataset):
     plt.ylabel('Number of instances')
     #plt.show()
 
+def ApplyTrasformation(trainingDataset):
+        
+        #listRank contains Ranks from ace to king
+        #listSuits contains how many suits there are for any group
+        #G label
+
+        Allrows = []
+        for index,rows in trainingDataset.iterrows():
+            
+            
+            listRank=[0,0,0,0,0,0,0,0,0,0,0,0,0]
+            listSuit=[0,0,0,0]
+            listLabel=[0]
+
+            print("=====")
+            print(rows)
+
+            for item in rows.items():
+
+                print(item[0])
+                print(item[1])
+
+                KindOfCard = str(item[0])
+                value = item[1]
+                if(KindOfCard.startswith('S')):
+                    value=value-1
+                    listSuit[value] =  listSuit[value] + 1
+
+                elif(KindOfCard.startswith('R')):
+                    value=value-1
+                    listRank[value] = 1
+                else:
+                    listLabel[0] = value
+
+
+            print(listRank)
+            print(listSuit)
+            print(listLabel)
+            tmpAggregator = listRank+listSuit+listLabel
+            print(tmpAggregator)
+            
 
 if __name__ == "__main__":
     trainingDataset = ReadDataset("./bin/resources/poker-hand-training-true.data")
@@ -117,6 +158,32 @@ if __name__ == "__main__":
 
     plt.close()
     PrintShapeGraph(testingDataset)
+
+
+    #Linear transformation from 11D to 18D
+    ApplyTrasformation(trainingDataset)
+    exit()
+
+    """
+
+    Representation in original dimensions (11D)
+        Data: 1,1,1,10,1,11,1,12,1,13,9
+        Encodes: Hearts-Ace, Hearts-Ten, Hearts-Jack, Hearts-Queen,
+        Hearts-King, Royal-Flush
+
+    Representation in new dimensions (18D)
+        Data: 1,0,0,0,0,0,0,0,0,1,1,1,1,5,0,0,0,9
+        Encodes: 1st column = 1 ace, 10th through 13th columns =
+        10, Jack, Queen and King, 14th column = 5 cards are hearts,
+        and 18th column a Royal Flush
+    """
+
+    trasformedDataframe = pd.Dataframe()
+
+
+    
+            
+
 
 
     #print(trainingDataset[trainingDataset['G']==9])
