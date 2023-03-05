@@ -131,14 +131,12 @@ if __name__ == "__main__":
     #Fodward selection could be an option?
 
     #Linear
-
     regressorLinear = LinearRegression()
     regressorLinear.fit(X_train,y_train)
 
     y_predective_linear = regressorLinear.predict(X_test)
     score = r2_score(y_test,y_predective_linear)*100
     print("R2 Score",score)
-
 
     #Calculate LOG REG
     logreg = LogisticRegression(random_state=16,max_iter=10000)

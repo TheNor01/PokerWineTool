@@ -7,6 +7,7 @@ from collections import Counter
 from numpy.random import seed
 from numpy.random import randint
 import random
+import pickle
 
 #10 predictive features 
 # 
@@ -24,6 +25,13 @@ import random
       7: Four of a kind; four equal ranks within five cards (poker)
       8: Straight flush; straight + flush // scala colore
       9: Royal flush; {Ace, King, Queen, Jack, Ten} + flush // scala reale
+
+      suit_name = {
+        1: 'Cuori',
+        2: 'Picche',
+        3: 'Quadri',
+        4: 'Fiori'
+        }
 """
 
 #Questions 
@@ -91,14 +99,54 @@ def PrintShapeGraph(dataset):
     plt.bar(poker_hands, [cls[i] for i in poker_hands], align='center')
     plt.xlabel('classes id')
     plt.ylabel('Number of instances')
+    plt.title("Classes of Dataset")
+    plt.show()
+
+def PlotCrossTab(trainingDataset):
+    allS = []
+    allR = []
+    for col in trainingDataset.columns:
+        #print(col)
+        filteredCol = list(trainingDataset[col].values)
+        if(str(col).startswith("S")):
+            print("S",str(col))
+            allS=allS+filteredCol
+        elif(str(col).startswith("R")):
+            print("R",str(col))
+            allR=allR+filteredCol
+        else:
+            continue
+
+    s = allS
+    r = allR
+
+    random.seed(10)
+    #Incremental k sample
+    # generate some integers
+    kSample=4000
+    indexes = random.sample(range(1, len(allS)), k=kSample)
+    #print(indexes)
+    subS  = [s[i] for i in indexes]
+    subR  = [r[i] for i in indexes]
+
+    #I don't make any difference but a R5 could be a R1 in terms of position
+    dfHeat = pd.DataFrame()
+    dfHeat["subS"] = subS
+    dfHeat["subR"] = subR
+    df2 = pd.crosstab(dfHeat['subS'], dfHeat['subR']).div(len(dfHeat))
+    sns.heatmap(df2, annot=True)
+
+    plt.xlabel('Ranks', fontsize=14)
+    plt.ylabel('Suits', fontsize=14)
+    plt.title("Cards occurrence")
+    #plt.close()
     #plt.show()
 
-def ApplyTrasformation(trainingDataset):
-        
+
+def ApplyTrasformation(trainingDataset,typeOfDs):
         #listRank contains Ranks from ace to king
         #listSuits contains how many suits there are for any group
         #G label
-
         Allrows = []
         for index,rows in trainingDataset.iterrows():
             
@@ -107,14 +155,8 @@ def ApplyTrasformation(trainingDataset):
             listSuit=[0,0,0,0]
             listLabel=[0]
 
-            print("=====")
-            print(rows)
 
             for item in rows.items():
-
-                print(item[0])
-                print(item[1])
-
                 KindOfCard = str(item[0])
                 value = item[1]
                 if(KindOfCard.startswith('S')):
@@ -128,13 +170,23 @@ def ApplyTrasformation(trainingDataset):
                     listLabel[0] = value
 
 
-            print(listRank)
-            print(listSuit)
-            print(listLabel)
             tmpAggregator = listRank+listSuit+listLabel
             print(tmpAggregator)
-            
+            Allrows.append(tmpAggregator)
+        print(len(Allrows))
 
+        newColumns = ['Asso', 'Due', 'Tre', 'Quattro', 'Cinque', 'Sei', 'Sette', 'Otto'
+                        ,'' 'Nove', 'Dieci', 'Principe','Regina','Re','rankCuori','rankPicche','rankQuadri','rankFiori','label']
+
+        encodedDf = pd.DataFrame(Allrows, columns=newColumns)
+        print(encodedDf)
+        print(encodedDf.shape)
+        
+        with open("./bin/resources/"+typeOfDs+"_encodedDf.pickle", 'wb') as output:
+            pickle.dump(encodedDf, output)
+        return encodedDf
+
+            
 if __name__ == "__main__":
     trainingDataset = ReadDataset("./bin/resources/poker-hand-training-true.data")
     #fare in modo che se c'è un false esce
@@ -161,83 +213,15 @@ if __name__ == "__main__":
 
 
     #Linear transformation from 11D to 18D
-    ApplyTrasformation(trainingDataset)
-    exit()
-
-    """
-
-    Representation in original dimensions (11D)
-        Data: 1,1,1,10,1,11,1,12,1,13,9
-        Encodes: Hearts-Ace, Hearts-Ten, Hearts-Jack, Hearts-Queen,
-        Hearts-King, Royal-Flush
-
-    Representation in new dimensions (18D)
-        Data: 1,0,0,0,0,0,0,0,0,1,1,1,1,5,0,0,0,9
-        Encodes: 1st column = 1 ace, 10th through 13th columns =
-        10, Jack, Queen and King, 14th column = 5 cards are hearts,
-        and 18th column a Royal Flush
-    """
-
-    trasformedDataframe = pd.Dataframe()
+    lsencodedDf = ApplyTrasformation(trainingDataset,"training")
+    testing_encodedDf = ApplyTrasformation(trainingDataset,"testing")
 
 
     
-            
-
-
+    
 
     #print(trainingDataset[trainingDataset['G']==9])
     
-
-    #ScatterPlot, append al columns and S and R
-
     plt.close()
+    PlotCrossTab(trainingDataset)
 
-    allS = []
-    allR = []
-    for col in trainingDataset.columns:
-        #print(col)
-        filteredCol = list(trainingDataset[col].values)
-        if(str(col).startswith("S")):
-            print("S",str(col))
-            allS=allS+filteredCol
-        elif(str(col).startswith("R")):
-            print("R",str(col))
-            allR=allR+filteredCol
-        else:
-            continue
-
-    print(len(allS))
-    print(len(allR))
-
-    s = allS
-    r = allR
-
-    seed(1)
-    # generate some integers
-    indexes = random.sample(range(1, 125040), 8000)
-    #print(indexes)
-    subS  = [s[i] for i in indexes]
-    subR  = [r[i] for i in indexes]
-
-    """
-    c = Counter(zip(subS,subR))
-    # create a list of the sizes, here multiplied by 10 for scale
-    size = [1.5*c[(xx,yy)] for xx,yy in zip(subS,subR)]
-
-    # plot it
-    plt.scatter(subS, subR, s=size)
-    
-    plt.show()
-    """
-
-    #I don't make any difference but a R5 could be a R1 in terms of position
-
-    dfHeat = pd.DataFrame()
-    dfHeat["subS"] = subS
-    dfHeat["subR"] = subR
-    df2 = pd.crosstab(dfHeat['subS'], dfHeat['subR']).div(len(dfHeat))
-    sns.heatmap(df2, annot=True)
-
-    #plt.close()
-    plt.show()

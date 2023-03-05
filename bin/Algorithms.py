@@ -8,7 +8,13 @@ import seaborn as sns
 from scipy.stats import zscore
 from sklearn.naive_bayes import ComplementNB
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.svm import SVC
 from sklearn.metrics import accuracy_score,confusion_matrix,ConfusionMatrixDisplay
+import pickle
+
+
+from utility.UtilityFunctions import plot_confusion_matrix
+
 """
 0: Nothing in hand; not a recognized poker hand 
       1: One pair; one pair of equal ranks within five cards
@@ -62,42 +68,59 @@ def BayesComputingClassification(X_train,y_train,X_test,y_test):
     clf = ComplementNB()
     clf.fit(X_train, y_train)
 
-    print(X_train[2:3])
-    print(clf.predict(X_train[2:3]))
-
     predictions = clf.predict(X_test)
     print("NAIVE BAYES accuracy",accuracy_score(y_test, predictions))
-    print(confusion_matrix(y_test, predictions))
 
-
+    plt.close()
+    classes=np.unique(y_test)
     cm = confusion_matrix(y_test, predictions, labels=clf.classes_)
-    disp = ConfusionMatrixDisplay(confusion_matrix=cm,display_labels=clf.classes_).plot()
-
-    plt.plot()
+    plot_confusion_matrix(cm,classes,"BAYES")
 
 def TreeBased (X_train,y_train,X_test,y_test):
     print("TREE CLASSIFICATION")
     clf = DecisionTreeClassifier()
     clf = clf.fit(X_train,y_train)
 
-    prediction = clf.predict(X_train[2:3])
-    print(prediction)
-
     predictions = clf.predict(X_test)
     print("TREE accuracy",accuracy_score(y_test, predictions))
-    print(confusion_matrix(y_test, predictions))
+    classes=np.unique(y_test)
+
+    plt.close()
     cm = confusion_matrix(y_test, predictions, labels=clf.classes_)
-    disp = ConfusionMatrixDisplay(confusion_matrix=cm,display_labels=clf.classes_).plot()
-
-    plt.plot()
+    plot_confusion_matrix(cm,classes,"TREE")
 
 
+
+def SvmBased(X_train,y_train,X_test,y_test):
+
+    #https://scikit-learn.org/stable/modules/generated/sklearn.svm.SVC.html#sklearn.svm.SVC
+    clf = SVC(kernel= 'poly', random_state=1, C=0.1,class_weight='balanced')
+    clf.fit(X_train, y_train)
+
+
+    predictions = clf.predict(X_test)
+    print("SVM accuracy",accuracy_score(y_test, predictions))
+    classes=np.unique(y_test)
+
+    plt.close()
+    cm = confusion_matrix(y_test, predictions, labels=clf.classes_)
+    plot_confusion_matrix(cm,classes,"SVM")
 
 
 
 if __name__ == "__main__":
     trainingDataset = ReadDataset("./bin/resources/poker-hand-training-true.data")
     testingDataset = ReadDataset("./bin/resources/poker-hand-testing.data")
+
+    with open('./bin/resources/training_encodedDf.pickle', 'rb') as data:
+        trainingDataset_encoded = pickle.load(data)
+
+    with open('./bin/resources/testing_encodedDf.pickle', 'rb') as data:
+        testingDataset_encoded = pickle.load(data)
+
+
+    print(trainingDataset_encoded.shape)
+
 
     #Our scope is classifying the poker hand by check card after card?!
     # 
@@ -118,6 +141,16 @@ if __name__ == "__main__":
 
     y_test = testingDataset['G']
     X_test = testingDataset[['S1', 'R1','S2', 'R2','S3', 'R3','S4', 'R4','S5','R5']]
+
+
+    X_train_encoded = trainingDataset_encoded.loc[:, trainingDataset_encoded.columns != 'label']
+    y_train_encoded = trainingDataset_encoded.loc[:, trainingDataset_encoded.columns == 'label']
+
+
+    X_test_encoded = testingDataset_encoded.loc[:, testingDataset_encoded.columns != 'label']
+    y_test_encoded = testingDataset_encoded.loc[:, testingDataset_encoded.columns == 'label']
+
+
     
 
     y_values = set(y_train.values)
@@ -131,7 +164,9 @@ if __name__ == "__main__":
     #      plt.cla()
 
     sns.distplot(trainingDataset['G'])
+    
     #plt.show()
+    plt.close()
 
     #print(trainingDataset.plot.area())
 
@@ -141,9 +176,11 @@ if __name__ == "__main__":
 
     rankPlot.plot.kde() 
     #plt.show() # gaussian partial
+    plt.close()
 
     suitPlot.plot.kde()
     #plt.show()  #comb
+    plt.close()
 
 
     
@@ -155,11 +192,13 @@ if __name__ == "__main__":
     rankPlot_scored = X_train_scored[[ 'R1_zscore', 'R2_zscore', 'R3_zscore', 'R4_zscore','R5_zscore']]
     rankPlot_scored.plot.kde() 
     #plt.show() # gaussian partial
+    plt.close()
 
 
     suitPlot_scored = X_train_scored[['S1_zscore','S2_zscore','S3_zscore','S4_zscore','S5_zscore']]
     suitPlot_scored.plot.kde()
     #plt.show()  #comb
+    plt.close()
 
     #Transformation dummies with 1/0 of ranks => bernulli event?!
 
@@ -175,6 +214,14 @@ if __name__ == "__main__":
     TreeBased(X_train,y_train,X_test,y_test)
     print("\n\n========\n\n")
     TreeBased(X_train_scored,y_train,X_test,y_test)
+
+
+    print("ENCODED CLASSIFICATION")
+
+    TreeBased(X_train_encoded,y_train_encoded,X_test_encoded,y_test_encoded)
+    BayesComputingClassification(X_train_encoded,y_train_encoded,X_test_encoded,y_test_encoded)
+    SvmBased(X_train_encoded,y_train_encoded,X_test_encoded,y_test_encoded)
+
 
 
 
