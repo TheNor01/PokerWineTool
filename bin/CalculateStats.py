@@ -102,7 +102,6 @@ if __name__ == "__main__":
 
     #Float or integer number as 4,2 -> 42, and then zscore all?
 
-    
     trainingCards['G'] = trainingCardsFull['G']
 
     print("Mode")
@@ -132,6 +131,8 @@ if __name__ == "__main__":
 
     
     #Using Pearson, maybe it's better to discard the case 0?
+
+    
     #We want to see if a card id related to label
     print("Calculating CORR...")
     corr = trainingCards.astype(float).corrwith(trainingCards['G'],axis=0)
