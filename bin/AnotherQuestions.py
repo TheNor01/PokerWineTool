@@ -149,6 +149,8 @@ if __name__ == "__main__":
 
     #Poor linear model, R2 is negative
 
+    #Try costant model
+
     #Maybe reduce varianze?
     print(X_train.var())
 

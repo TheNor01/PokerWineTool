@@ -11,11 +11,13 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.svm import SVC
 from sklearn.metrics import accuracy_score,confusion_matrix,ConfusionMatrixDisplay
 import pickle
-from sklearn.metrics import classification_report
+from sklearn.metrics import classification_report,pairwise_distances
 from utility.UtilityFunctions import plot_confusion_matrix,PlotTrainErrors
 from scipy.spatial.distance import cdist
 from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
+import kmedoids
+from sklearn_extra.cluster import KMedoids
 
 """
 0: Nothing in hand; not a recognized poker hand 
@@ -106,7 +108,6 @@ def TreeBased (X_train,y_train,X_test,y_test):
 
 
 def SvmBased(X_train,y_train,X_test,y_test):
-
     classesMetrics=['0','1','2','3','4','5','6','7','8','9']
     #https://scikit-learn.org/stable/modules/generated/sklearn.svm.SVC.html#sklearn.svm.SVC
     clf_linear = SVC(kernel= 'linear', C=0.1,class_weight='balanced')
@@ -153,7 +154,68 @@ def SvmBased(X_train,y_train,X_test,y_test):
     print(classification_report(y_test, predictions, target_names=classesMetrics))
 
 
+def Kmeans(X_train):
+    #We presume there are 11 K points, equals to label
+    clusters=range(1,11)
+    meandist=[]
 
+    
+    for k in clusters:
+        model=KMeans(n_clusters=k)
+        model.fit(X_train)
+        clusassign=model.predict(X_train)
+        meandist.append(sum(np.min(cdist(X_train, model.cluster_centers_, 'braycurtis'), axis=1)) / X_train.shape[0])
+
+    plt.plot(clusters, meandist)
+    plt.xlabel('Number of clusters')
+    plt.ylabel('Average distance')
+    plt.title('Selecting k with the Elbow Method') # pick the fewest number of cluster
+    plt.show()
+
+    #Changing distance? https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.cdist.html 
+
+    #Seems there is no a clear elbow, braycurtis or cosine
+    clusterNumbers = 3
+    model=KMeans(n_clusters=clusterNumbers)
+    model.fit(X_train) # has cluster assingments based on using 3 clusters
+
+    score = accuracy_score(y_test,model.predict(X_test))
+    print('Accuracy:{0:f}'.format(score))
+
+    #K medoids in order to improve kmeans #page 399
+    kmedoids = KMedoids(n_clusters=clusterNumbers).fit(X_train)
+    score = accuracy_score(y_test,kmedoids.predict(X_test))
+    print('Accuracy Medoids:{0:f}'.format(score))
+
+def ApplyPCA(X_train):
+    pca = PCA(n_components=10) # return 2 first canonical variables
+    plot_columns = pca.fit_transform(X_train)
+    X_train_pca = pca.fit_transform(X_train)
+
+    print(X_train_pca.shape)
+    print(X_train_pca)
+
+
+    #https://plotly.com/python/pca-visualization/
+
+    # plt.scatter(x=plot_columns[:,0], y=plot_columns[:,1], c=model.labels_,) # plot 1st canonical variable on x axis, 2nd on y-axis
+    # plt.xlabel('Canonical variable 1')
+    # plt.ylabel('Canonical variable 2')
+    # plt.title('Scatterplot of Canonical Variables for '+str(clusterNumbers)+' Clusters')
+    # plt.show()
+
+    PC_values = np.arange(pca.n_components_)+1
+    plt.plot(PC_values, pca.explained_variance_ratio_, 'o-', linewidth=2, color='blue')
+    plt.title('Scree Plot')
+    plt.xlabel('Principal Component')
+    plt.ylabel('Variance Explained')
+    plt.show()
+
+    print(pca.explained_variance_ratio_)
+    pass
+
+def Kmetoids():
+    pass
 
 
 if __name__ == "__main__":
@@ -279,63 +341,22 @@ if __name__ == "__main__":
     #K means
     #Graph based?
 
-    #We presume there are 11 K points, equals to label
-    clusters=range(1,11)
-    meandist=[]
+    Kmeans(X_train)
 
-    
-    for k in clusters:
-        model=KMeans(n_clusters=k)
-        model.fit(X_train)
-        clusassign=model.predict(X_train)
-        meandist.append(sum(np.min(cdist(X_train, model.cluster_centers_, 'braycurtis'), axis=1)) / X_train.shape[0])
-
-    plt.plot(clusters, meandist)
-    plt.xlabel('Number of clusters')
-    plt.ylabel('Average distance')
-    plt.title('Selecting k with the Elbow Method') # pick the fewest number of cluster
-    plt.show()
-
-    #Changing distance? https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.cdist.html 
-
-    #Seems there is no a clear elbow, braycurtis or cosine
-
-    clusterNumbers = 3
-    model=KMeans(n_clusters=clusterNumbers)
-    model.fit(X_train) # has cluster assingments based on using 3 clusters
-
-    score = accuracy_score(y_test,model.predict(X_test))
-    print('Accuracy:{0:f}'.format(score))
-
-    exit()
 
     #Variance 
     print("VARIANCE DATASET")
     print(X_train.var())
 
     #Maybe we can reduce features?
-    pca = PCA(n_components=7) # return 2 first canonical variables
-    plot_columns = pca.fit_transform(X_train) # fit CA to the train dataset
+    ApplyPCA(X_train)
+    
 
 
+    
 
-    plt.scatter(x=plot_columns[:,0], y=plot_columns[:,1], c=model.labels_,) # plot 1st canonical variable on x axis, 2nd on y-axis
-    plt.xlabel('Canonical variable 1')
-    plt.ylabel('Canonical variable 2')
-    plt.title('Scatterplot of Canonical Variables for '+str(clusterNumbers)+' Clusters')
-    plt.show()
+    #clustering gerarchico
 
-    PC_values = np.arange(pca.n_components_)+1
-    plt.plot(PC_values, pca.explained_variance_ratio_, 'o-', linewidth=2, color='blue')
-    plt.title('Scree Plot')
-    plt.xlabel('Principal Component')
-    plt.ylabel('Variance Explained')
-    plt.show()
-
-    print(pca.explained_variance_ratio_)
-        
-
-    #Graph Based
 
 
 
