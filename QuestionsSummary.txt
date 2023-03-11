@@ -31,6 +31,8 @@ tappeto dei grafici è da considerarsi come un errore.
 
 OK. Crosstab increasing 
 
+#https://towardsdatascience.com/the-art-of-effective-visualization-of-multi-dimensional-data-6c7202990c57
+
 
 
 5) Formulazione domande di analisi. Una volta che i dati sono stati ben studiati ed esplorati si

@@ -14,9 +14,9 @@ import pickle
 from sklearn.metrics import classification_report,pairwise_distances
 from utility.UtilityFunctions import plot_confusion_matrix,PlotTrainErrors
 from scipy.spatial.distance import cdist
-from sklearn.cluster import KMeans
+from sklearn.cluster import KMeans,AgglomerativeClustering
+import scipy.cluster.hierarchy as shc
 from sklearn.decomposition import PCA
-import kmedoids
 from sklearn_extra.cluster import KMedoids
 
 """
@@ -188,13 +188,11 @@ def Kmeans(X_train):
     print('Accuracy Medoids:{0:f}'.format(score))
 
 def ApplyPCA(X_train):
-    pca = PCA(n_components=10) # return 2 first canonical variables
-    plot_columns = pca.fit_transform(X_train)
+    pca = PCA(n_components = 0.90) 
     X_train_pca = pca.fit_transform(X_train)
 
+    print("Shape pca")
     print(X_train_pca.shape)
-    print(X_train_pca)
-
 
     #https://plotly.com/python/pca-visualization/
 
@@ -209,10 +207,12 @@ def ApplyPCA(X_train):
     plt.title('Scree Plot')
     plt.xlabel('Principal Component')
     plt.ylabel('Variance Explained')
-    plt.show()
+    #plt.show()
 
     print(pca.explained_variance_ratio_)
-    pass
+
+    return X_train_pca
+    
 
 def Kmetoids():
     pass
@@ -349,7 +349,41 @@ if __name__ == "__main__":
     print(X_train.var())
 
     #Maybe we can reduce features?
-    ApplyPCA(X_train)
+    X_train_pca = ApplyPCA(X_train)
+
+    X_train_pca=pd.DataFrame(X_train_pca,).copy()
+
+    components = X_train_pca.shape[1]
+
+    print(components)
+    newColumns = ['P'+str(item) for item in range(1, components+1)]
+
+    X_train_pca.columns = newColumns
+
+    print(X_train_pca)
+
+    plt.figure(figsize =(8, 8))
+    plt.title('Visualising the data')
+    Dendrogram = shc.dendrogram((shc.linkage(X_train_pca, method ='ward')))
+
+    plt.show()
+
+
+    plt.cla()
+    plt.close()
+
+    #Choose k CLUSTER - DRAW  line in order to seperate 
+
+    clustering_agglomerate = AgglomerativeClustering(8).fit(X_train_pca)
+    plt.figure(figsize =(6, 6))
+    plt.scatter(X_train_pca['P1'], X_train_pca  ['P2'],
+                c = clustering_agglomerate.fit_predict(X_train_pca) , cmap ='rainbow')
+    plt.show()
+
+
+
+
+
     
 
 
