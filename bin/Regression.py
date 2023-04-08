@@ -8,26 +8,8 @@ from sklearn.metrics import r2_score
 from scipy.stats import zscore
 from matplotlib import pyplot as plt
 from sklearn.feature_selection import SequentialFeatureSelector
-
-
-"""
-0: Nothing in hand; not a recognized poker hand 
-      1: One pair; one pair of equal ranks within five cards
-      2: Two pairs; two pairs of equal ranks within five cards
-      3: Three of a kind; three equal ranks within five cards
-      4: Straight; five cards, sequentially ranked with no gaps
-      5: Flush; five cards with the same suit
-      6: Full house; pair + different rank three of a kind
-      7: Four of a kind; four equal ranks within five cards
-      8: Straight flush; straight + flush
-      9: Royal flush; {Ace, King, Queen, Jack, Ten} + flush
-"""
-
-def ReadDataset(path):
-    features = np.array(['S1', 'R1','S2', 'R2','S3', 'R3','S4', 'R4','S5','R5','G'])
-    columnsFeatures = pd.Series(features)
-    trainingDataset = pd.read_csv(path,names=columnsFeatures)
-    return trainingDataset
+from sklearn.metrics import pairwise_distances,silhouette_score
+from utility.UtilityFunctions import ReadDataset
 
 
 def DoBackWardManual(trainingDataset):
@@ -113,6 +95,9 @@ def DoBackWardAutomatic(X_train,y_train):
 
     return feature_names[sfs_forward.get_support()]
 
+
+#main
+
 if __name__ == "__main__":
     trainingDataset = ReadDataset("./bin/resources/poker-hand-training-true.data")
     testingDataset = ReadDataset("./bin/resources/poker-hand-testing.data")
@@ -126,13 +111,11 @@ if __name__ == "__main__":
     #print(X_train)
 
     #Can we regress features? Mmmm
-
-    # i.e Only Poker (7), we can regress the rank and the suit of one card
+    # i.e Only Poker (7), we can regress the rank and the suit of one card.
     # Royal flush (9)
-
+    #For others labels we cant.
     
-    #Actually we introduce the dummy variable in order to reduce range for Suit and Rank
-
+    #Actually we introduce the dummy variable in order to reduce range for Suit and Rank.
     print("DUMMIES SUIT")
     X_train_dummy = pd.get_dummies(X_train, columns = ["S1","S2","S3", "S4", "S5"]).copy()
     print(X_train_dummy)
@@ -142,10 +125,10 @@ if __name__ == "__main__":
 
     # What about other features?
 
-    #Feature selection
-    #Every Card is revelant in order to achieve a Poker hand
 
-    #DoBackWardManual(X_train)
+    #Feature selection for regression task
+    #Every Card is revelant in order to achieve a Poker hand
+    DoBackWardManual(X_train)
 
     featuresSelected = DoBackWardAutomatic(X_train,y_train)
 
@@ -179,27 +162,20 @@ if __name__ == "__main__":
     print("R2 Score log original",score)
     #Poor linear model, R2 is negative
 
-
-
     logreg.fit(X_train_selected,y_train)
     y_pred_reg = logreg.predict(X_test[featuresSelected])
     score = r2_score(y_test,y_pred_reg)*100
     print("R2 Score log selected",score)
 
-    #Try costant model
+    #We can try a costant regression model, but it will underfit everything
 
-    #Maybe reduce varianze?
+    #Maybe reduce varianze, thanks to zscore?
     print(X_train.var())
-
     X_train_scored = pd.DataFrame()
     X_test_scored = pd.DataFrame()
     for col in X_train.columns:
         X_train_scored[str(col)+'_zscore'] = zscore(X_train[col])
         X_test_scored[str(col)+'_zscore'] = zscore(X_test[col])
-
-    #Applying z-score
-    #X_train_scored = X_train.apply(zscore)
-    
 
     #print(X_train_scored)
 
@@ -214,4 +190,3 @@ if __name__ == "__main__":
     y_pred_reg = logreg.predict(X_test_scored)
     score = r2_score(y_test,y_pred_reg)*100
     print("R2 Score scored log",score)
-

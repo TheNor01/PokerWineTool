@@ -9,6 +9,8 @@ from numpy.random import randint
 import random
 import pickle
 
+from utility.UtilityFunctions import ReadDataset,ApplyTrasformation
+
 #10 predictive features 
 # 
 # SUIT  Ordinal:(1-4) representing {Hearts, Spades, Diamonds, Clubs} //picche
@@ -43,13 +45,12 @@ import pickle
     #Order Column ascendent based on RANK?
 #
 
-def ReadDataset(path):
-    features = np.array(['S1', 'R1','S2', 'R2','S3', 'R3','S4', 'R4','S5','R5','G'])
-    columnsFeatures = pd.Series(features)
-    trainingDataset = pd.read_csv(path,names=columnsFeatures)
-    return trainingDataset
+
+
 
 def CheckIntegrityDataset(dataset):
+    #Method used to detect strange values, according to problem specification
+
     print("Checking null or NAN values...")
 
     checkNan = dataset.isnull().values.any() #returns true if there is one true at least
@@ -73,21 +74,9 @@ def PrintShapeGraph(dataset):
     print("SIZE OF : (Records,Features)")
     print(dataset.shape)
 
-    g_classes = len(set(dataset['G'].values))  # count distinct values
+    g_classes = len(set(dataset['G'].values))  # count distinct values label
     poker_hands = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 
-    hand_name = {
-    0: 'Nothing in hand',
-    1: 'One pair',
-    2: 'Two pairs',
-    3: 'Three of a kind',
-    4: 'Straight',
-    5: 'Flush',
-    6: 'Full house',
-    7: 'Four of a kind',
-    8: 'Straight flush',
-    9: 'Royal flush',
-    }
 
     print(g_classes)
     cls = {}
@@ -96,6 +85,9 @@ def PrintShapeGraph(dataset):
     print(cls)
 
     #classes are unbalanced
+
+    #Plot histogram
+
     plt.bar(poker_hands, [cls[i] for i in poker_hands], align='center')
     plt.xlabel('classes id')
     plt.ylabel('Number of instances')
@@ -103,6 +95,10 @@ def PrintShapeGraph(dataset):
     plt.show()
 
 def PlotCrossTab(trainingDataset):
+
+    #We plot a heatmap starting from all values rank and suit, based on k random index
+    #we obtain the most common card
+
     allS = []
     allR = []
     for col in trainingDataset.columns:
@@ -122,7 +118,9 @@ def PlotCrossTab(trainingDataset):
 
     random.seed(10)
     #Incremental k sample
-    # generate some integers
+    # generate some integersm, random
+
+
     kSample=4000
     indexes = random.sample(range(1, len(allS)), k=kSample)
     #print(indexes)
@@ -140,70 +138,33 @@ def PlotCrossTab(trainingDataset):
     plt.ylabel('Suits', fontsize=14)
     plt.title("Cards occurrence")
     #plt.close()
-    #plt.show()
+    plt.show()
 
 
-def ApplyTrasformation(trainingDataset,typeOfDs):
-        #listRank contains Ranks from ace to king
-        #listSuits contains how many suits there are for any group
-        #G label
-        Allrows = []
-        for index,rows in trainingDataset.iterrows():
-            
-            
-            listRank=[0,0,0,0,0,0,0,0,0,0,0,0,0]
-            listSuit=[0,0,0,0]
-            listLabel=[0]
 
-
-            for item in rows.items():
-                KindOfCard = str(item[0])
-                value = item[1]
-                if(KindOfCard.startswith('S')):
-                    value=value-1
-                    listSuit[value] =  listSuit[value] + 1
-
-                elif(KindOfCard.startswith('R')):
-                    value=value-1
-                    listRank[value] = 1
-                else:
-                    listLabel[0] = value
-
-
-            tmpAggregator = listRank+listSuit+listLabel
-            print(tmpAggregator)
-            Allrows.append(tmpAggregator)
-        print(len(Allrows))
-
-        newColumns = ['Asso', 'Due', 'Tre', 'Quattro', 'Cinque', 'Sei', 'Sette', 'Otto'
-                        ,'' 'Nove', 'Dieci', 'Principe','Regina','Re','rankCuori','rankPicche','rankQuadri','rankFiori','label']
-
-        encodedDf = pd.DataFrame(Allrows, columns=newColumns)
-        print(encodedDf)
-        print(encodedDf.shape)
-        
-        with open("./bin/resources/"+typeOfDs+"_encodedDf.pickle", 'wb') as output:
-            pickle.dump(encodedDf, output)
-        return encodedDf
 
             
+#Main start
+
 if __name__ == "__main__":
     trainingDataset = ReadDataset("./bin/resources/poker-hand-training-true.data")
-    #fare in modo che se c'è un false esce
 
+
+    #fare in modo che se c'è un false esce
     print("### TRAINING ###")
     CheckIntegrityDataset(trainingDataset)
 
     print(trainingDataset)
 
-    #fare in modo che se c'è un false esce
-    CheckIntegrityDataset(trainingDataset)
-
     print("Dropping duplicates...")
     trainingDataset = trainingDataset.drop_duplicates()
+
+
+    #Info shape training
     PrintShapeGraph(trainingDataset)
 
 
+    #Loading testing
     print("\n\n### TESTING ###")
     testingDataset = ReadDataset("./bin/resources/poker-hand-testing.data")
     CheckIntegrityDataset(testingDataset)
@@ -212,16 +173,16 @@ if __name__ == "__main__":
     PrintShapeGraph(testingDataset)
 
 
-    #Linear transformation from 11D to 18D
-    lsencodedDf = ApplyTrasformation(trainingDataset,"training")
-    testing_encodedDf = ApplyTrasformation(trainingDataset,"testing")
-
-
-    
-    
-
-    #print(trainingDataset[trainingDataset['G']==9])
-    
     plt.close()
     PlotCrossTab(trainingDataset)
+    #Linear transformation from 11D to 18D
+
+    #We want to obtain a trasformation regardless card position and order.
+    # Basically the main idea is to count how many card there are in each valuation
+    # With rank and suit. Thanks to it, we have a standard rapresentation of training/test set
+    lsencodedDf = ApplyTrasformation(trainingDataset,"training")
+    testing_encodedDf = ApplyTrasformation(trainingDataset,"testing")
+    #print(trainingDataset[trainingDataset['G']==9])
+    
+    
 

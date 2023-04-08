@@ -2,6 +2,7 @@ from matplotlib import cm
 from matplotlib import pyplot as plt
 import numpy as np
 import os
+import pandas as pd
 import itertools
 from sklearn.model_selection import ShuffleSplit,LearningCurveDisplay
 
@@ -75,3 +76,54 @@ def PlotTrainErrors(X_train,y_train,classifier):
         ax[ax_idx].set_title(f"Learning Curve for {estimator.__class__.__name__}")
 
         plt.show()
+
+
+def ReadDataset(path):
+    features = np.array(['S1', 'R1','S2', 'R2','S3', 'R3','S4', 'R4','S5','R5','G'])
+    columnsFeatures = pd.Series(features)
+    trainingDataset = pd.read_csv(path,names=columnsFeatures)
+    return trainingDataset
+
+
+
+def ApplyTrasformation(trainingDataset,typeOfDs):
+        #listRank contains Ranks from ace to king
+        #listSuits contains how many suits there are for any group
+        #G label
+        Allrows = []
+        for index,rows in trainingDataset.iterrows():
+            
+            listRank=[0,0,0,0,0,0,0,0,0,0,0,0,0]
+            listSuit=[0,0,0,0]
+            listLabel=[0]
+
+
+            for item in rows.items():
+                KindOfCard = str(item[0])
+                value = item[1]
+                if(KindOfCard.startswith('S')):
+                    value=value-1
+                    listSuit[value] =  listSuit[value] + 1
+
+                elif(KindOfCard.startswith('R')):
+                    value=value-1
+                    listRank[value] = 1
+                else:
+                    listLabel[0] = value
+
+
+            tmpAggregator = listRank+listSuit+listLabel
+            print(tmpAggregator)
+            Allrows.append(tmpAggregator)
+        print(len(Allrows))
+
+        newColumns = ['Asso', 'Due', 'Tre', 'Quattro', 'Cinque', 'Sei', 'Sette', 'Otto'
+                        ,'' 'Nove', 'Dieci', 'Principe','Regina','Re','rankCuori','rankPicche','rankQuadri','rankFiori','label']
+
+        encodedDf = pd.DataFrame(Allrows, columns=newColumns)
+        print(encodedDf)
+        print(encodedDf.shape)
+        
+        with open("./bin/resources/"+typeOfDs+"_encodedDf.pickle", 'wb') as output:
+            pickle.dump(encodedDf, output)
+        return encodedDf

@@ -39,19 +39,16 @@ def DivideNumber(x):
         temp = x/10
         return '%.1f'%(temp)
 
+
+
 if __name__ == "__main__":
     trainingDataset = ReadDataset("./bin/resources/poker-hand-training-true.data")
-
-    #How many rank and how many suit
-
-    #approssimo all suo intero
 
     trainingSuit= trainingDataset[["S1", "S2", "S3", "S4", "S5","G"]]
     trainingRank = trainingDataset[["R1", "R2", "R3", "R4","R5","G"]]
 
     
-    print(trainingDataset)
-
+    #We could use describe, but it is meaningless?!
     #print(trainingSuit.describe().astype(int))
     print("\n---")
     #print(trainingRank.describe().astype(int))
@@ -61,7 +58,6 @@ if __name__ == "__main__":
     axis.set_title("Avegerage Suit card")
     axis.set_xlabel("Suit values")
     axis.set_ylabel("Mean")
-
 
     #plt.show()
     meanSuit  = mean(trainingSuit.mean(axis=0).values).astype(int)
@@ -78,16 +74,12 @@ if __name__ == "__main__":
     meanRank = mean(trainingRank.mean(axis=0).values).astype(int)
     print("AVERAGE RANK IS:",meanRank)
 
+    #Ipotetical cause there is no specific order
     print("MOST COMMON IPOTETICAL CARD"+"("+str(meanSuit)+","+str(meanRank)+")")
 
     #What if we calculate mean by grouping cards?
 
-    #trainingDataset['C1'] = '('+trainingSuit['S1'].map(str) + ',' + trainingRank['R1'].map(str)+')'
-    #trainingDataset['C2'] = '('+trainingSuit['S2'].map(str) + ',' + trainingRank['R2'].map(str)+')'
-    #trainingDataset['C3'] = '('+trainingSuit['S3'].map(str) + ',' + trainingRank['R3'].map(str)+')'
-    #trainingDataset['C4'] = '('+trainingSuit['S4'].map(str) + ',' + trainingRank['R4'].map(str)+')'
-    #trainingDataset['C5'] = '('+trainingSuit['S5'].map(str) + ',' + trainingRank['R5'].map(str)+')'
-
+    #Suit, Rank
     trainingDataset['C1'] = (trainingSuit['S1'].map(str)+trainingRank['R1'].map(str)).astype(int)
     trainingDataset['C2'] = (trainingSuit['S2'].map(str)+trainingRank['R2'].map(str)).astype(int)
     trainingDataset['C3'] = (trainingSuit['S3'].map(str)+trainingRank['R3'].map(str)).astype(int)
@@ -96,43 +88,44 @@ if __name__ == "__main__":
     
     trainingCardsFull = trainingDataset[["C1", "C2", "C3", "C4", "C5","G"]]
 
-
     print(trainingCardsFull)
+    #apply a division to split string as double
     trainingCards = trainingCardsFull[['C1', 'C2', 'C3','C4','C5']].applymap(DivideNumber)
 
+    print(trainingCards)
     #Float or integer number as 4,2 -> 42, and then zscore all?
 
     trainingCards['G'] = trainingCardsFull['G']
 
-    print("Mode")
+    print("Mode Card")
     valuesMode = trainingCards[['C1', 'C2', 'C3','C4','C5']].astype(float).mode(axis=0).iloc[0]
     print(valuesMode)
     axis = valuesMode.plot(kind='bar')
     axis.set_title("Mode cards, First value is always the Suit")
     
-    #plt.show()
+    plt.show()
+
     axis.clear()
 
     
-    # Has it any sense?
-
+    #Boxplot is meaningless, imo?! 
     #b_plot = trainingCards.astype(float).boxplot(column = ["C1"]) 
     #b_plot.plot()
     #plt.show()
 
 
     #Which combination of poker hand is mostly frequent?
-    auxCount = trainingCards[['C1', 'C2', 'C3','C4','C5']].value_counts()
-    dictFreq = auxCount.to_dict() 
-    print(dict(itertools.islice(dictFreq.items(), 5)))
-    print(trainingCards[['C1', 'C2', 'C3','C4','C5']].value_counts(normalize=True).head(5))
 
+
+
+    auxCount = trainingCards[['C1', 'C2', 'C3','C4','C5']].value_counts()
+    print(auxCount.head(10))
+    print(trainingCards[['C1', 'C2', 'C3','C4','C5']].value_counts(normalize=True).head(3))
+
+
+    #Using Pearson, maybe it's better to discard the case 0?
     #Suit and Ranks correlation: https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.Series.corr.html
 
-    
-    #Using Pearson, maybe it's better to discard the case 0?
-
-    
     #We want to see if a card id related to label
     print("Calculating CORR...")
     corr = trainingCards.astype(float).corrwith(trainingCards['G'],axis=0)
@@ -140,22 +133,18 @@ if __name__ == "__main__":
     
     #Seems that cards on C1,C3 are related to the poker hand, let's see which card are they
     filter = trainingCards["G"] != 0.0
-
     filterMax = trainingCards["G"] == 9.0
     #auxCount = trainingCards[['C3','G']].where(filter,inplace=True).head(5)
     #print(auxCount)
 
     #CARD 4,10 seems to be very common for G != 0
     print(trainingCards[['C3','G']].where(filter).value_counts(normalize=True).head(5))
-
     #CARD 4,9 seems to be very common for G != 0
     print(trainingCards[['C1','G']].where(filter).value_counts(normalize=True).head(5))
 
-    #CARD 1,10 seems to be very common for G == 9
-    print(trainingCards[['C1','G']].where(filterMax).value_counts(normalize=True).head(5))
 
+    #CARD 1,10 seems to be very common for G == 9, perphas there are only them
+    print(trainingCards[['C1','G']].where(filterMax).value_counts(normalize=True).head(10))
 
     #Seems like there isn't a strong correlation between card and label
-    #Also, correlation between features seems pretty rare, cause everytime there is a 
-
-
+    #Also, correlation between features seems pretty rare. (due to poker game?)

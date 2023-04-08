@@ -7,7 +7,7 @@ OK: https://archive-beta.ics.uci.edu/dataset/158/poker+hand
 2) Organizzazione e pulizia. Ci sono NA? Ci sono valori chiaramente errati? Ci sono ovvie
 ripetizioni e incongruenze? Ci sono un numero congruo di osservazioni?
 
-OK. CheckIntegrityDataset
+OK. CheckIntegrityDataset. osservazioni alte ma classi sbilanciate con PrintShapeGraph.
 
 3) Esplorazione statistica. Calcolare i descrittori statistici più significativi per ciascuna feature.
 Ci sono outlier? Quali sono le varianze delle feature? Le classi sono bilanciate? Ci sono
@@ -23,7 +23,6 @@ Classes are not balanced
 Some classes, example 9 are recognized everytime by same rank and suit of cards
 
 
-
 4) Esplorazione visuale: produrre grafici, istogrammi, diagrammi di vario tipo che rendano
 chiare le proprietà più rilevanti dei dati. I grafici prodotti vanno motivati: proliferazione a
 tappeto dei grafici è da considerarsi come un errore.
@@ -34,7 +33,6 @@ OK. Crosstab increasing
 #https://towardsdatascience.com/the-art-of-effective-visualization-of-multi-dimensional-data-6c7202990c57
 
 
-
 5) Formulazione domande di analisi. Una volta che i dati sono stati ben studiati ed esplorati si
 possono formulare le “domande guida” per analizzarli. Ci sono feature che possono essere
 regresse da altre?
@@ -43,22 +41,18 @@ se non esplicitamente definite? Si richiede che vengano formulate almeno tre dom
 richiedano rispettivamente l’utilizzo di algoritmi di regressione, di classificazione e di
 clustering.
 
+One questions i did is it. How can i handle data r1 r2 s1 s2 ... regardless their position and standard for every line.
+=> 18d code
 
 OK. We cannot regress features. Cause there isn't a clear correlation, i guess
-So every X is 
+So every X is independent
 
-
-
-One questions i did is. How can i handle data r1 r2 s1 s2 ... regardless their position and standard for every line.
-=> 18d code
 
 6) Regressione. Si calcolino modelli regressivi per le feature individuate come possibili
 regresse al passo 5). E’ utile introdurre variabili dummy? Il modello regressivo migliora se
 si elimano dei valori da giudicare come outlier. Si cerchi di ottimizzare la regressione
 selezionando le variabili con strategia backward o forward. Modelli regressivi non lineari
 possono dare risultati migliori?
-
-
 
 
 
@@ -70,7 +64,7 @@ bilanciamento? Si possono ottenere risultati migliori trasformando le feature o 
 PCA?
 
 
-
+Applied differents methods: bayes, svm, tree with differents traing formats
 
 8) Clustering. All’interno dei dati si possono individuare con ragionevole confidenza delle
 classi? Tentare con almeno due algoritmi visti a lezione la clusterizzazione automatica dei
