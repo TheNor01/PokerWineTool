@@ -8,14 +8,13 @@ from sklearn.metrics import r2_score
 from scipy.stats import zscore
 from matplotlib import pyplot as plt
 from sklearn.feature_selection import SequentialFeatureSelector
-from sklearn.metrics import pairwise_distances,silhouette_score
 from utility.UtilityFunctions import ReadDataset
 
 
 def DoBackWardManual(trainingDataset):
     #Backward Forward
 
-    print(np.ones(10))
+    
     #0.95 P-value so we have to discard pvalue > 0.05
     X= np.append(arr = np.ones((25010,1)).astype(int), values = X_train, axis = 1)
 

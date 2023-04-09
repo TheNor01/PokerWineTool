@@ -18,55 +18,34 @@ from utility.UtilityFunctions import plot_confusion_matrix,PlotTrainErrors
 from utility.UtilityFunctions import ReadDataset
 
 
-hand_name = {
-    0: 'Null',
-    1: 'Coppia',
-    2: 'Doppia Coppia',
-    3: 'Tris',
-    4: 'Scala',
-    5: 'Colore',
-    6: 'FULL',
-    7: 'Poker',
-    8: 'Scala colore',
-    9: 'Scala Reale',
-    }
-
-suit_name = {
-    1: 'Cuori',
-    2: 'Picche',
-    3: 'Quadri',
-    4: 'Fiori'
-}
-
-
 
 #https://github.com/ss80226/MAP_estimation/tree/master/report
 #https://python.quantecon.org/mle.html
-
-
 
 
 def BayesComputingClassification(X_train,y_train,X_test,y_test):
     #https://scikit-learn.org/stable/modules/naive_bayes.html
     
     print("NAIVE BAYES CLASSIFICATION")
-
     clf = ComplementNB()
     clf.fit(X_train, y_train)
 
     predictions = clf.predict(X_test)
-    print("NAIVE BAYES accuracy",accuracy_score(y_test, predictions))
+    print("NAIVE BAYES Accuracy",accuracy_score(y_test, predictions))
 
-    plt.close()
     classes=np.unique(y_test)
 
     classesMetrics=['0','1','2','3','4','5','6','7','8','9']
 
     cm = confusion_matrix(y_test, predictions, labels=clf.classes_)
+    plt.close()
+
     plot_confusion_matrix(cm,classes,"BAYES")
 
     print("BAYES")
     print(classification_report(y_test, predictions, target_names=classesMetrics))
+
+    print("Plot train error bayes")
     PlotTrainErrors(X_train,y_train,clf)
 
 def TreeBased (X_train,y_train,X_test,y_test):
@@ -95,7 +74,7 @@ def SvmBased(X_train,y_train,X_test,y_test):
     clf_linear = SVC(kernel= 'linear', C=0.1,class_weight='balanced')
     clf_linear.fit(X_train, y_train)
     predictions = clf_linear.predict(X_test)
-    print("SVM accuracy",accuracy_score(y_test, predictions))
+    print("SVM accuracy LINEAR",accuracy_score(y_test, predictions))
     classes=np.unique(y_test)
 
     plt.close()
@@ -177,15 +156,15 @@ if __name__ == "__main__":
 
 
     X_train_encoded = trainingDataset_encoded.loc[:, trainingDataset_encoded.columns != 'label']
-    y_train_encoded = trainingDataset_encoded.loc[:, trainingDataset_encoded.columns == 'label']
+    y_train_encoded = trainingDataset_encoded.loc[:, trainingDataset_encoded.columns == 'label'].values.ravel()
 
 
     X_test_encoded = testingDataset_encoded.loc[:, testingDataset_encoded.columns != 'label']
-    y_test_encoded = testingDataset_encoded.loc[:, testingDataset_encoded.columns == 'label']
+    y_test_encoded = testingDataset_encoded.loc[:, testingDataset_encoded.columns == 'label'].values.ravel()
 
 
     y_values = set(y_train.values)
-    print(y_values)
+    #print(y_values)
     
     # for value in y_values:
     #      tmp = X_train[X_train.G == value]
@@ -207,11 +186,11 @@ if __name__ == "__main__":
     suitPlot = X_train[['S1','S2','S3','S4','S5']]
 
     rankPlot.plot.kde() 
-    plt.show() # gaussian partial
+    #plt.show() # gaussian partial
     plt.close()
 
     suitPlot.plot.kde()
-    plt.show()  #comb
+    #plt.show()  #comb
     plt.close()
 
 
@@ -228,20 +207,23 @@ if __name__ == "__main__":
 
 
     suitPlot_scored = X_train_scored[['S1_zscore','S2_zscore','S3_zscore','S4_zscore','S5_zscore']]
-    suitPlot_scored.plot.kde()
+    #suitPlot_scored.plot.kde()
     #plt.show()  #comb
     plt.close()
 
 
     #Transformation dummies with 1/0 of ranks => bernulli event?!
 
-    print(rankPlot_scored.describe())
 
+    print("Describe rank suit scored")
+    print(rankPlot_scored.describe())
     print("\n\n===================\n\n")
     print(suitPlot_scored.describe())
 
     #BayesComputingClassification(X_train,y_train,X_test,y_test)
     print("\n\n========\n\n")
+
+    #negative 
     #BayesComputingClassification(X_train_scored,y_train,X_test,y_test)
     print("\n\n===================\n\n")
     #TreeBased(X_train,y_train,X_test,y_test)
@@ -250,7 +232,7 @@ if __name__ == "__main__":
 
 
     print("ENCODED CLASSIFICATION")
-    #TreeBased(X_train_encoded,y_train_encoded,X_test_encoded,y_test_encoded)
+    TreeBased(X_train_encoded,y_train_encoded,X_test_encoded,y_test_encoded)
     #BayesComputingClassification(X_train_encoded,y_train_encoded,X_test_encoded,y_test_encoded)
     #SvmBased(X_train_encoded,y_train_encoded,X_test_encoded,y_test_encoded)
 

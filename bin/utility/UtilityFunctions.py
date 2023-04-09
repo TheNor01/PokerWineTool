@@ -54,9 +54,11 @@ def plot_confusion_matrix(cm, classes, classifier,normalize=False, cmap=cm.Blues
             plt.close(f)
 
 def PlotTrainErrors(X_train,y_train,classifier):
-    plt.close()
 
-    fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(10, 6), sharey=True)
+
+    plt.close()
+    fig, ax = plt.subplots(nrows=1, ncols=2, figsize=(10, 6))
+
     common_params = {
         "X": X_train,
         "y": y_train,
@@ -74,8 +76,10 @@ def PlotTrainErrors(X_train,y_train,classifier):
         handles, label = ax[ax_idx].get_legend_handles_labels()
         ax[ax_idx].legend(handles[:2], ["Training Score", "Test Score"])
         ax[ax_idx].set_title(f"Learning Curve for {estimator.__class__.__name__}")
+    
+    plt.show()
 
-        plt.show()
+    #fig.show()
 
 
 def ReadDataset(path):

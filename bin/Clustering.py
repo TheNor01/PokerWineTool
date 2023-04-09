@@ -4,9 +4,14 @@ import scipy.cluster.hierarchy as shc
 from sklearn.decomposition import PCA
 from sklearn_extra.cluster import KMedoids
 import pickle
+import pandas as pd
+import numpy as np
 from matplotlib import pyplot as plt
+from sklearn.metrics import accuracy_score
+from sklearn.metrics import pairwise_distances,silhouette_score
+from utility.UtilityFunctions import ReadDataset
 
-def Kmeans(X_train):
+def Kmeans(X_train,X_test):
     #We presume there are 11 K points, equals to label
     clusters=range(1,11)
     meandist=[]
@@ -90,9 +95,12 @@ if __name__ == "__main__":
     #Graph based?
 
     X_train = trainingDataset[['S1', 'R1','S2', 'R2','S3', 'R3','S4', 'R4','S5','R5']]
+    y_test = testingDataset['G']
 
-    Kmeans(X_train)
+    y_test = testingDataset['G']
+    X_test = testingDataset[['S1', 'R1','S2', 'R2','S3', 'R3','S4', 'R4','S5','R5']]
 
+    Kmeans(X_train,X_test)
 
     #Variance 
     print("VARIANCE DATASET")
