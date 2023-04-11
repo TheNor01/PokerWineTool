@@ -17,13 +17,14 @@ from utility.UtilityFunctions import plot_confusion_matrix,PlotTrainErrors
 
 from utility.UtilityFunctions import ReadDataset
 
-
+TREE = "TREE"
+SVM_RBF = "SVM_RBF"
 
 #https://github.com/ss80226/MAP_estimation/tree/master/report
 #https://python.quantecon.org/mle.html
 
 
-def BayesComputingClassification(X_train,y_train,X_test,y_test):
+def BayesComputingClassification(X_train,y_train,X_test,y_test,activeEncoded):
     #https://scikit-learn.org/stable/modules/naive_bayes.html
     
     print("NAIVE BAYES CLASSIFICATION")
@@ -40,35 +41,39 @@ def BayesComputingClassification(X_train,y_train,X_test,y_test):
     cm = confusion_matrix(y_test, predictions, labels=clf.classes_)
     plt.close()
 
-    plot_confusion_matrix(cm,classes,"BAYES")
+    plot_confusion_matrix(cm,classes,"BAYES",activeEncoded)
 
     print("BAYES")
     print(classification_report(y_test, predictions, target_names=classesMetrics))
 
     print("Plot train error bayes")
-    PlotTrainErrors(X_train,y_train,clf)
+    PlotTrainErrors(X_train,y_train,clf,"BAYES",activeEncoded)
 
-def TreeBased (X_train,y_train,X_test,y_test):
+def TreeBased (X_train,y_train,X_test,y_test,activeEncoded):
 
     classesMetrics=['0','1','2','3','4','5','6','7','8','9']
-    print("TREE CLASSIFICATION")
+
+    if(activeEncoded==1):
+        print("Encoded tree active")
+
+    print(TREE+": classification")
     clf = DecisionTreeClassifier()
     clf = clf.fit(X_train,y_train)
 
     predictions = clf.predict(X_test)
-    print("TREE accuracy",accuracy_score(y_test, predictions))
+    print(TREE+":ACC",accuracy_score(y_test, predictions))
     classes=np.unique(y_test)
 
     plt.close()
     cm = confusion_matrix(y_test, predictions, labels=clf.classes_)
-    plot_confusion_matrix(cm,classes,"TREE")
+    plot_confusion_matrix(cm,classes,"TREE",activeEncoded)
 
-    print("TREE")
+    print("TREE Metric")
     print(classification_report(y_test, predictions, target_names=classesMetrics))
-    PlotTrainErrors(X_train,y_train,clf)
+    PlotTrainErrors(X_train,y_train,clf,"TREE",activeEncoded)
 
 
-def SvmBased(X_train,y_train,X_test,y_test):
+def SvmBased(X_train,y_train,X_test,y_test,activeEncoded):
     classesMetrics=['0','1','2','3','4','5','6','7','8','9']
     #https://scikit-learn.org/stable/modules/generated/sklearn.svm.SVC.html#sklearn.svm.SVC
     clf_linear = SVC(kernel= 'linear', C=0.1,class_weight='balanced')
@@ -79,7 +84,7 @@ def SvmBased(X_train,y_train,X_test,y_test):
 
     plt.close()
     cm = confusion_matrix(y_test, predictions, labels=clf_linear.classes_)
-    plot_confusion_matrix(cm,classes,"SVM_linear")
+    plot_confusion_matrix(cm,classes,"SVM_linear",activeEncoded)
 
     print("SVM linear")
     print(classification_report(y_test, predictions, target_names=classesMetrics))
@@ -94,7 +99,7 @@ def SvmBased(X_train,y_train,X_test,y_test):
 
     plt.close()
     cm = confusion_matrix(y_test, predictions, labels=clf_poly.classes_)
-    plot_confusion_matrix(cm,classes,"SVM_poly")
+    plot_confusion_matrix(cm,classes,"SVM_poly",activeEncoded)
 
     print("SVM poly")
     print(classification_report(y_test, predictions, target_names=classesMetrics))
@@ -109,13 +114,11 @@ def SvmBased(X_train,y_train,X_test,y_test):
 
     plt.close()
     cm = confusion_matrix(y_test, predictions, labels=clf_rbf.classes_)
-    plot_confusion_matrix(cm,classes,"SVM_rbf")
+    plot_confusion_matrix(cm,classes,"SVM_rbf",activeEncoded)
 
     print("SVM RBF")
     print(classification_report(y_test, predictions, target_names=classesMetrics))
-
-
-
+    PlotTrainErrors(X_train,y_train,clf_rbf,"SVM RBF",activeEncoded)
 
 
 
@@ -196,8 +199,10 @@ if __name__ == "__main__":
 
     
     X_train_scored = pd.DataFrame()
+    X_test_scored = pd.DataFrame()
     for col in X_train.columns:
         X_train_scored[str(col)+'_zscore'] = zscore(X_train[col])
+        X_test_scored[str(col)+'_zscore'] = zscore(X_test[col])
 
 
     rankPlot_scored = X_train_scored[[ 'R1_zscore', 'R2_zscore', 'R3_zscore', 'R4_zscore','R5_zscore']]
@@ -220,19 +225,20 @@ if __name__ == "__main__":
     print("\n\n===================\n\n")
     print(suitPlot_scored.describe())
 
+    activeEncoded=0
     #BayesComputingClassification(X_train,y_train,X_test,y_test)
     print("\n\n========\n\n")
-
     #negative 
     #BayesComputingClassification(X_train_scored,y_train,X_test,y_test)
     print("\n\n===================\n\n")
     #TreeBased(X_train,y_train,X_test,y_test)
     print("\n\n========\n\n")
-    #TreeBased(X_train_scored,y_train,X_test,y_test)
+    TreeBased(X_train_scored,y_train,X_test_scored,y_test,activeEncoded)
 
 
     print("ENCODED CLASSIFICATION")
-    TreeBased(X_train_encoded,y_train_encoded,X_test_encoded,y_test_encoded)
+    activeEncoded=1
+    TreeBased(X_train_encoded,y_train_encoded,X_test_encoded,y_test_encoded,activeEncoded)
     #BayesComputingClassification(X_train_encoded,y_train_encoded,X_test_encoded,y_test_encoded)
     #SvmBased(X_train_encoded,y_train_encoded,X_test_encoded,y_test_encoded)
 

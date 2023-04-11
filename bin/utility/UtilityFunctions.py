@@ -5,11 +5,12 @@ import os
 import pandas as pd
 import itertools
 from sklearn.model_selection import ShuffleSplit,LearningCurveDisplay
+import pickle
 
 
-def plot_confusion_matrix(cm, classes, classifier,normalize=False, cmap=cm.Blues, png_output="./Images", show=True):
+def plot_confusion_matrix(cm, classes, classifier,encodedActive,normalize=False, cmap=cm.Blues, png_output="./Images", show=True):
        
-        title='Confusion matrix OF '+classifier
+        title='Confusion matrix OF '+classifier+ "- ENC:"+str(encodedActive)
         # Calculate chart area size
         leftmargin = 0.5 # inches
         rightmargin = 0.5 # inches
@@ -45,7 +46,10 @@ def plot_confusion_matrix(cm, classes, classifier,normalize=False, cmap=cm.Blues
 
         if png_output is not None:
             os.makedirs(png_output, exist_ok=True)
-            f.savefig(os.path.join(png_output,'confusion_matrix_'+classifier+'.png'), bbox_inches='tight')
+            if(encodedActive):
+                f.savefig(os.path.join(png_output,'Encoded confusion_matrix_'+classifier+'.png'), bbox_inches='tight')
+            else:
+                f.savefig(os.path.join(png_output,'confusion_matrix_'+classifier+'.png'), bbox_inches='tight')
 
         if show:
             plt.show()
@@ -53,7 +57,7 @@ def plot_confusion_matrix(cm, classes, classifier,normalize=False, cmap=cm.Blues
         else:
             plt.close(f)
 
-def PlotTrainErrors(X_train,y_train,classifier):
+def PlotTrainErrors(X_train,y_train,classifier,clfAsString,encodedActive):
 
 
     plt.close()
@@ -71,13 +75,19 @@ def PlotTrainErrors(X_train,y_train,classifier):
         "score_name": "Accuracy",
     }
 
+    title = f"Learning Curve for {classifier.__class__.__name__} ENC {encodedActive}"
     for ax_idx, estimator in enumerate([classifier]):
         LearningCurveDisplay.from_estimator(estimator, **common_params, ax=ax[ax_idx])
         handles, label = ax[ax_idx].get_legend_handles_labels()
         ax[ax_idx].legend(handles[:2], ["Training Score", "Test Score"])
-        ax[ax_idx].set_title(f"Learning Curve for {estimator.__class__.__name__}")
+        ax[ax_idx].set_title(title)
     
     plt.show()
+
+    if(encodedActive):
+        fig.savefig('./Images/Encoded_trainError_'+clfAsString+'.png')
+    else:
+        fig.savefig('./Images/trainError_'+clfAsString+'.png')
 
     #fig.show()
 
