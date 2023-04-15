@@ -93,9 +93,18 @@ def PlotTrainErrors(X_train,y_train,classifier,clfAsString,encodedActive):
 
 
 def ReadDataset(path):
+
+
     features = np.array(['S1', 'R1','S2', 'R2','S3', 'R3','S4', 'R4','S5','R5','G'])
     columnsFeatures = pd.Series(features)
     trainingDataset = pd.read_csv(path,names=columnsFeatures)
+
+    # making boolean series for a team name
+    #filter0 = trainingDataset["G"] != 0
+  
+    # filtering data
+    #trainingDataset.where(filter0, inplace = True)
+
     return trainingDataset
 
 
@@ -127,9 +136,9 @@ def ApplyTrasformation(trainingDataset,typeOfDs):
 
 
             tmpAggregator = listRank+listSuit+listLabel
-            print(tmpAggregator)
+            #print(tmpAggregator)
             Allrows.append(tmpAggregator)
-        print(len(Allrows))
+        #print(len(Allrows))
 
         newColumns = ['Asso', 'Due', 'Tre', 'Quattro', 'Cinque', 'Sei', 'Sette', 'Otto'
                         ,'' 'Nove', 'Dieci', 'Principe','Regina','Re','rankCuori','rankPicche','rankQuadri','rankFiori','label']

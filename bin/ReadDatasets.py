@@ -8,6 +8,7 @@ from numpy.random import seed
 from numpy.random import randint
 import random
 import pickle
+from imblearn import over_sampling
 
 from utility.UtilityFunctions import ReadDataset,ApplyTrasformation
 
@@ -17,7 +18,7 @@ from utility.UtilityFunctions import ReadDataset,ApplyTrasformation
 # Rank Numerical: (1-13) (Ace, 2, 3, ... , Queen, King)
 # 1 output Goal: Ordinal (0-9)
 """
-0: Nothing in hand; not a recognized poker hand 
+     0: Nothing in hand; not a recognized poker hand 
       1: One pair; one pair of equal ranks within five cards // coppia
       2: Two pairs; two pairs of equal ranks within five cards // doppia coppia
       3: Three of a kind; three equal ranks within five cards //tris
@@ -57,7 +58,7 @@ def CheckIntegrityDataset(dataset):
     print(checkNan)
 
     print("\nChecking numerical value for every columns ... i = integer")
-    checksNumerical = [(c, dataset[c].dtype.kind in 'i') for c in dataset.columns]
+    checksNumerical = [(c, dataset[c].astype(str).str.isdigit().values.any()) for c in dataset.columns]
     print(checksNumerical)
 
     print("\nChecking range predictive (1,13) columns")
@@ -76,6 +77,7 @@ def PrintShapeGraph(dataset):
 
     g_classes = len(set(dataset['G'].values))  # count distinct values label
     poker_hands = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+    #poker_hands = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 
 
     print(g_classes)
@@ -147,11 +149,10 @@ def PlotCrossTab(trainingDataset):
 #Main start
 
 if __name__ == "__main__":
-    trainingDataset = ReadDataset("./bin/resources/poker-hand-training-true.data")
-
-
     #fare in modo che se c'è un false esce
     print("### TRAINING ###")
+    trainingDataset = ReadDataset("./bin/resources/poker-hand-training-true.data")
+
     CheckIntegrityDataset(trainingDataset)
 
     print(trainingDataset)
@@ -175,13 +176,46 @@ if __name__ == "__main__":
 
     plt.close()
     PlotCrossTab(trainingDataset)
+
+
+
+    ...
+    # define oversampling strategy
+
+    print("OVERSAMPLING")
+    target=7000
+    #oversample = over_sampling.RandomOverSampler(sampling_strategy="minority")
+    dictSamples= { 2: target, 3: target, 4: target, 5: target, 6 : target, 7: target, 8: target, 9: target}
+    oversample = over_sampling.RandomOverSampler(sampling_strategy=dictSamples)
+
+    y_train = trainingDataset['G']
+    X_train = trainingDataset[['S1', 'R1','S2', 'R2','S3', 'R3','S4', 'R4','S5','R5']]
+
+    X_over, y_over = oversample.fit_resample(X_train, y_train)
+
+    print(X_over.shape)
+
+    mergedDf = pd.concat([X_over, y_over], axis=1)
+    print(mergedDf)
+
+    plt.close()
+    PrintShapeGraph(mergedDf)
+
+
+
     #Linear transformation from 11D to 18D
+
+    
 
     #We want to obtain a trasformation regardless card position and order.
     # Basically the main idea is to count how many card there are in each valuation
     # With rank and suit. Thanks to it, we have a standard rapresentation of training/test set
+
+    print("ENCODING TRAING")
     lsencodedDf = ApplyTrasformation(trainingDataset,"training")
-    testing_encodedDf = ApplyTrasformation(trainingDataset,"testing")
+
+    print("ENCODING TEST")
+    testing_encodedDf = ApplyTrasformation(testingDataset,"testing")
     #print(trainingDataset[trainingDataset['G']==9])
     
     
