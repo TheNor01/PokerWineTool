@@ -20,7 +20,7 @@ def Kmeans(X_train,X_test,y_test,activeEncoded):
     #We presume there are 11 K points (groups), equals to label
 
 
-    print("Computing KMENAS ENC"+str(activeEncoded))
+    print("Computing KMENAS ENC = "+str(activeEncoded))
 
 
     clusters=range(1,11)
@@ -63,10 +63,10 @@ def Kmeans(X_train,X_test,y_test,activeEncoded):
 
 def ApplyPCA(X_train):
     pca = PCA(n_components = 0.90) 
-    X_train_pca = pca.fit_transform(X_train)
+    trasformedDf = pca.fit_transform(X_train)
 
     print("Shape pca")
-    print(X_train_pca.shape)
+    print(trasformedDf.shape)
 
     #https://plotly.com/python/pca-visualization/
 
@@ -85,7 +85,9 @@ def ApplyPCA(X_train):
 
     print(pca.explained_variance_ratio_)
 
-    return X_train_pca
+    outputDf = pd.DataFrame(trasformedDf,).copy()
+
+    return outputDf
     
 
 if __name__ == "__main__":
@@ -125,7 +127,7 @@ if __name__ == "__main__":
     y_test_encoded = testingDataset_encoded.loc[:, testingDataset_encoded.columns == 'label'].values.ravel()
 
     #Apply kmeans
-    Kmeans(X_train,X_test,y_test,0)
+        #Kmeans(X_train,X_test,y_test,0)
 
     #Variance 
     print("VARIANCE DATASET FOR PCA")
@@ -136,24 +138,24 @@ if __name__ == "__main__":
     X_test_pca = ApplyPCA(X_test)
 
 
-    X_train_pca=pd.DataFrame(X_train_pca,).copy()
-    X_test_pca=pd.DataFrame(X_test_pca,).copy()
-    components = X_train_pca.shape[1]
+    X_train_pca_encoded = ApplyPCA(X_train)
+    X_train_pca_encoded = ApplyPCA(X_train)
 
+    """
+    components = X_train_pca.shape[1]
     #print(components)
     newColumns = ['P'+str(item) for item in range(1, components+1)]
-
     X_train_pca.columns = newColumns
+    """
 
     #print(X_train_pca)
-    Kmeans(X_train_pca,X_test_pca,y_test,0)
-
+        #Kmeans(X_train_pca,X_test_pca,y_test,0)
 
     #do the same with encoded
+    #Kmeans(X_train_encoded,X_test_encoded,y_test_encoded,1)
 
-    exit()
 
-  
+
     #Choose k CLUSTER - DRAW  line in order to seperate 
 
     plt.figure(figsize =(8, 8))

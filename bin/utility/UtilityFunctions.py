@@ -101,6 +101,7 @@ def ReadDataset(path):
 
 
 def ApplyTrasformation(trainingDataset,typeOfDs):
+
         #listRank contains Ranks from ace to king
         #listSuits contains how many suits there are for any group
         #G label
@@ -134,7 +135,7 @@ def ApplyTrasformation(trainingDataset,typeOfDs):
         newColumns = ['Asso', 'Due', 'Tre', 'Quattro', 'Cinque', 'Sei', 'Sette', 'Otto'
                         ,'' 'Nove', 'Dieci', 'Principe','Regina','Re','rankCuori','rankPicche','rankQuadri','rankFiori','label']
 
-        encodedDf = pd.DataFrame(Allrows, columns=newColumns)
+        encodedDf = pd.DataFrame(Allrows, columns=newColumns).drop_duplicates()
         print(encodedDf)
         print(encodedDf.shape)
         
