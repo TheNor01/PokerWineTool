@@ -9,7 +9,7 @@ from scipy.stats import zscore
 from sklearn.naive_bayes import ComplementNB
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.svm import SVC
-from sklearn.metrics import accuracy_score,confusion_matrix,recall_score
+from sklearn.metrics import accuracy_score,confusion_matrix
 import pickle
 from sklearn.metrics import classification_report
 from utility.UtilityFunctions import plot_confusion_matrix,PlotTrainErrors
@@ -33,7 +33,6 @@ def BayesComputingClassification(X_train,y_train,X_test,y_test,activeEncoded):
 
     predictions = clf.predict(X_test)
     print("NAIVE BAYES Accuracy",accuracy_score(y_test, predictions))
-    print("NAIVE BAYES Recall",accuracy_score(y_test, predictions))
 
     classes=np.unique(y_test)
 
@@ -63,7 +62,6 @@ def TreeBased (X_train,y_train,X_test,y_test,activeEncoded):
 
     predictions = clf.predict(X_test)
     print(TREE+":ACC",accuracy_score(y_test, predictions))
-    print(TREE+":REC",recall_score(y_test, predictions))
     classes=np.unique(y_test)
 
     plt.close()
@@ -97,7 +95,6 @@ def SvmBased(X_train,y_train,X_test,y_test,activeEncoded):
     clf_poly.fit(X_train, y_train)
     predictions = clf_poly.predict(X_test)
     print("SVM accuracy",accuracy_score(y_test, predictions))
-    print("SVM recall",recall_score(y_test, predictions))
     classes=np.unique(y_test)
 
     plt.close()
@@ -113,7 +110,6 @@ def SvmBased(X_train,y_train,X_test,y_test,activeEncoded):
     clf_rbf.fit(X_train, y_train)
     predictions = clf_rbf.predict(X_test)
     print("SVM rbf accuracy",accuracy_score(y_test, predictions))
-    print("SVM rfb recall",recall_score(y_test, predictions))
     classes=np.unique(y_test)
 
     plt.close()
@@ -122,7 +118,10 @@ def SvmBased(X_train,y_train,X_test,y_test,activeEncoded):
 
     print("SVM RBF")
     print(classification_report(y_test, predictions, target_names=classesMetrics))
-    PlotTrainErrors(X_train,y_train,clf_rbf,"SVM RBF",activeEncoded)
+    #PlotTrainErrors(X_train,y_train,clf_rbf,"SVM RBF",activeEncoded)
+
+    print("Class weights")
+    print(clf_rbf.class_weight_)
 
 
 
@@ -235,16 +234,16 @@ if __name__ == "__main__":
     #negative 
     #BayesComputingClassification(X_train_scored,y_train,X_test,y_test)
     print("\n\n===================\n\n")
-    #TreeBased(X_train,y_train,X_test,y_test)
+    #TreeBased(X_train,y_train,X_test,y_test,activeEncoded)
     print("\n\n========\n\n")
-    TreeBased(X_train_scored,y_train,X_test_scored,y_test,activeEncoded)
+    #SvmBased(X_train_scored,y_train,X_test_scored,y_test,activeEncoded,activeEncoded)
 
 
     print("ENCODED CLASSIFICATION")
     activeEncoded=1
-    TreeBased(X_train_encoded,y_train_encoded,X_test_encoded,y_test_encoded,activeEncoded)
-    #BayesComputingClassification(X_train_encoded,y_train_encoded,X_test_encoded,y_test_encoded)
-    #SvmBased(X_train_encoded,y_train_encoded,X_test_encoded,y_test_encoded)
+    #TreeBased(X_train_encoded,y_train_encoded,X_test_encoded,y_test_encoded,activeEncoded,activeEncoded)
+    #BayesComputingClassification(X_train_encoded,y_train_encoded,X_test_encoded,y_test_encoded,activeEncoded)
+    SvmBased(X_train_encoded,y_train_encoded,X_test_encoded,y_test_encoded,activeEncoded)
 
 
 

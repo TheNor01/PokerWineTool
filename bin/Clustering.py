@@ -7,9 +7,11 @@ import pickle
 import pandas as pd
 import numpy as np
 from matplotlib import pyplot as plt
-from sklearn.metrics import accuracy_score,confusion_matrix
+from sklearn.metrics import classification_report
+from sklearn.metrics import confusion_matrix
 from sklearn.metrics import pairwise_distances,silhouette_score
 from utility.UtilityFunctions import ReadDataset
+#from yellowbrick.cluster import SilhouetteVisualizer
 
 from utility.UtilityFunctions import plot_confusion_matrix,PlotTrainErrors
 
@@ -20,22 +22,24 @@ def Kmeans(X_train,X_test,y_test,activeEncoded):
     #We presume there are 11 K points (groups), equals to label
 
 
-    print("Computing KMENAS ENC = "+str(activeEncoded))
+    #print("Computing KMENAS ENC: "+str(activeEncoded))
 
 
     clusters=range(1,11)
     meandist=[]
+    clusterSum=[]
 
     
     for k in clusters:
-        model=KMeans(n_clusters=k)
+        model=KMeans(n_clusters=k,init='k-means++',)
         model.fit(X_train)
-        clusassign=model.predict(X_train)
-        meandist.append(sum(np.min(cdist(X_train, model.cluster_centers_, 'braycurtis'), axis=1)) / X_train.shape[0])
+        clusterSum.append(model.inertia_)
+        #clusassign=model.predict(X_train)
+        #meandist.append(sum(np.min(cdist(X_train, model.cluster_centers_, 'braycurtis'), axis=1)) / X_train.shape[0])
 
-    plt.plot(clusters, meandist)
+    plt.plot(clusters, clusterSum)
     plt.xlabel('Number of clusters')
-    plt.ylabel('Average distance')
+    plt.ylabel('Sum square cluster')
     plt.title('Selecting k with the Elbow Method') # pick the fewest number of cluster
     plt.show()
 
@@ -53,13 +57,13 @@ def Kmeans(X_train,X_test,y_test,activeEncoded):
     cm = confusion_matrix(y_test, predictions, labels=classes)
     plot_confusion_matrix(cm,classes,"KMEANS",activeEncoded)
 
-    score = accuracy_score(y_test,predictions)
-    print('Accuracy:{0:f}'.format(score))
-
     #K medoids in order to improve kmeans #page 399, cause a value range "is known"
     kmedoids = KMedoids(n_clusters=clusterNumbers).fit(X_train)
-    score = accuracy_score(y_test,kmedoids.predict(X_test))
-    print('Accuracy Medoids:{0:f}'.format(score))
+    predictions=kmedoids.predict(X_test)
+
+    classesMetrics=['0','1','2','3','4','5','6','7','8','9']
+
+    print(classification_report(y_test, predictions, target_names=classesMetrics))
 
 def ApplyPCA(X_train):
     pca = PCA(n_components = 0.90) 
@@ -83,11 +87,7 @@ def ApplyPCA(X_train):
     plt.ylabel('Variance Explained')
     plt.show()
 
-    print(pca.explained_variance_ratio_)
-
-    outputDf = pd.DataFrame(trasformedDf,).copy()
-
-    return outputDf
+    return X_train_pca
     
 
 if __name__ == "__main__":
@@ -114,7 +114,7 @@ if __name__ == "__main__":
     #Cluster gerarchico?
 
     X_train = trainingDataset[['S1', 'R1','S2', 'R2','S3', 'R3','S4', 'R4','S5','R5']]
-    y_test = testingDataset['G']
+    y_train = trainingDataset['G']
 
     y_test = testingDataset['G']
     X_test = testingDataset[['S1', 'R1','S2', 'R2','S3', 'R3','S4', 'R4','S5','R5']]
@@ -127,15 +127,22 @@ if __name__ == "__main__":
     y_test_encoded = testingDataset_encoded.loc[:, testingDataset_encoded.columns == 'label'].values.ravel()
 
     #Apply kmeans
-        #Kmeans(X_train,X_test,y_test,0)
+    #Kmeans(X_train,X_test,y_test,0)
 
     #Variance 
-    print("VARIANCE DATASET FOR PCA")
-    print(X_train.var())
+    print("PCA")
+    #print(X_train.var())
 
     #can we reduce features?
     X_train_pca = ApplyPCA(X_train)
     X_test_pca = ApplyPCA(X_test)
+
+    #pca unicode
+
+
+    print("PCA ENCODED")
+    X_train_encoded_pca = ApplyPCA(X_train_encoded)
+    X_test_encoded_pca = ApplyPCA(X_test_encoded)
 
 
     X_train_pca_encoded = ApplyPCA(X_train)
@@ -152,9 +159,7 @@ if __name__ == "__main__":
         #Kmeans(X_train_pca,X_test_pca,y_test,0)
 
     #do the same with encoded
-    #Kmeans(X_train_encoded,X_test_encoded,y_test_encoded,1)
-
-
+    Kmeans(X_train_encoded,X_test_encoded,y_test_encoded,1)
 
     #Choose k CLUSTER - DRAW  line in order to seperate 
 
@@ -162,32 +167,34 @@ if __name__ == "__main__":
     plt.title('Visualising the data')
 
     #method could be changed
-    Dendrogram = shc.dendrogram((shc.linkage(X_train_pca, method ='ward')))
+    #Dendrogram = shc.dendrogram((shc.linkage(X_train_pca, method ='ward')))
 
     clusterFromDendrogam = 11
     #plt.show()
 
+    """
     plt.cla()
     plt.close()
-    clustering_agglomerate = AgglomerativeClustering(clusterFromDendrogam).fit(X_train_pca)
+    clustering_agglomerate = AgglomerativeClustering(clusterFromDendrogam).fit(X_train_encoded)
+    
     plt.figure(figsize =(6, 6))
-    plt.scatter(X_train_pca['P1'], X_train_pca  ['P2'],
-                c = clustering_agglomerate.fit_predict(X_train_pca) , cmap ='rainbow')
+    plt.scatter(X_train_encoded['P1'], X_train_encoded  ['P2'],
+                c = clustering_agglomerate.fit_predict(X_train_encoded) , cmap ='rainbow')
     plt.show()
 
     #clustering gerarchico comparison, anche indice di Dunn
+    """
 
     
     plt.close()
     #EVALUATE CLUSTERING
     k = [2, 3, 4, 5, 6, 8]
-    
     # Appending the silhouette scores of the different models to the list
     silhouette_scores = []
 
     for cluster in k:
-        clustering_agglomerate = AgglomerativeClustering(cluster).fit(X_train_pca)
-        silhouette_scores.append(silhouette_score(X_train_pca, clustering_agglomerate.fit_predict(X_train_pca)))
+        clustering_agglomerate = AgglomerativeClustering(cluster).fit(X_train_encoded)
+        silhouette_scores.append(silhouette_score(X_train_encoded, clustering_agglomerate.fit_predict(X_train_encoded)))
 
 
     plt.bar(k, silhouette_scores)
