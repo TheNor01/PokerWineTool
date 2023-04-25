@@ -141,10 +141,14 @@ def ApplyTrasformation(trainingDataset,typeOfDs):
             Allrows.append(tmpAggregator)
         #print(len(Allrows))
 
-        newColumns = ['Asso', 'Due', 'Tre', 'Quattro', 'Cinque', 'Sei', 'Sette', 'Otto'
-                        ,'' 'Nove', 'Dieci', 'Principe','Regina','Re','rankCuori','rankPicche','rankQuadri','rankFiori','label']
+        newColumns = ['Asso', 'Due', 'Tre', 'Quattro', 'Cinque', 'Sei', 'Sette', 'Otto',
+                      'Nove', 'Dieci', 'Principe','Regina','Re','rankCuori','rankPicche','rankQuadri','rankFiori','label']
 
-        encodedDf = pd.DataFrame(Allrows, columns=newColumns).drop_duplicates()
+        if(not "sample" in typeOfDs):
+            encodedDf = pd.DataFrame(Allrows, columns=newColumns).drop_duplicates()
+        else:
+            encodedDf = pd.DataFrame(Allrows, columns=newColumns)
+        
         print(encodedDf)
         print(encodedDf.shape)
         

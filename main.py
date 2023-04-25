@@ -19,8 +19,3 @@ with open('./bin/resources/training_encodedDf.pickle', 'rb') as data:
 
 
 print(trainingDataset_encoded)
-print(type(trainingDataset_encoded))
-print(trainingDataset_encoded.shape)
-
-df2=trainingDataset_encoded.drop_duplicates()
-print(df2.shape)

@@ -6,11 +6,12 @@ from matplotlib import pyplot as plt
 from math import sqrt,pi,exp
 import seaborn as sns
 from scipy.stats import zscore
-from sklearn.naive_bayes import ComplementNB
-from sklearn.tree import DecisionTreeClassifier
+from sklearn.naive_bayes import ComplementNB,MultinomialNB
+from sklearn.tree import DecisionTreeClassifier,plot_tree
 from sklearn.svm import SVC
 from sklearn.metrics import accuracy_score,confusion_matrix
 import pickle
+from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report
 from utility.UtilityFunctions import plot_confusion_matrix,PlotTrainErrors
 
@@ -19,45 +20,50 @@ from utility.UtilityFunctions import ReadDataset
 
 TREE = "TREE"
 SVM_RBF = "SVM_RBF"
+BAYES = "BAYES"
+
+classesMetrics=['0','1','2','3','4','5','6','7','8','9']
+
 
 #https://github.com/ss80226/MAP_estimation/tree/master/report
 #https://python.quantecon.org/mle.html
 
 
+
+#bayes classification
 def BayesComputingClassification(X_train,y_train,X_test,y_test,activeEncoded):
+
+
     #https://scikit-learn.org/stable/modules/naive_bayes.html
-    
-    print("NAIVE BAYES CLASSIFICATION")
-    clf = ComplementNB()
+    print("\n\n========\n\n")
+    print(BAYES+" CLASSIFICATION")
+    clf = MultinomialNB()
     clf.fit(X_train, y_train)
 
     predictions = clf.predict(X_test)
-    print("NAIVE BAYES Accuracy",accuracy_score(y_test, predictions))
+    print("NAIVE BAYES Complement Accuracy",accuracy_score(y_test, predictions))
 
     classes=np.unique(y_test)
-
-    classesMetrics=['0','1','2','3','4','5','6','7','8','9']
-
     cm = confusion_matrix(y_test, predictions, labels=clf.classes_)
     plt.close()
 
-    plot_confusion_matrix(cm,classes,"BAYES",activeEncoded)
+    plot_confusion_matrix(cm,classes,BAYES,activeEncoded)
 
-    print("BAYES")
-    print(classification_report(y_test, predictions, target_names=classesMetrics))
+    print("BAYES report classification")
+    print(classification_report(y_test, predictions, target_names=classesMetrics,zero_division=1))
 
-    print("Plot train error bayes")
-    PlotTrainErrors(X_train,y_train,clf,"BAYES",activeEncoded)
+    print("Plotting train error bayes....")
+    PlotTrainErrors(X_train,y_train,clf,BAYES,activeEncoded)
 
+############################################################################
+
+#tree classification
 def TreeBased (X_train,y_train,X_test,y_test,activeEncoded):
-
-    classesMetrics=['0','1','2','3','4','5','6','7','8','9']
-
-    if(activeEncoded==1):
-        print("Encoded tree active")
-
+    print("\n\n========\n\n")
     print(TREE+": classification")
-    clf = DecisionTreeClassifier()
+
+    #
+    clf = DecisionTreeClassifier(criterion='gini',max_depth=6,class_weight='balanced')
     clf = clf.fit(X_train,y_train)
 
     predictions = clf.predict(X_test)
@@ -72,12 +78,26 @@ def TreeBased (X_train,y_train,X_test,y_test,activeEncoded):
     print(classification_report(y_test, predictions, target_names=classesMetrics))
     PlotTrainErrors(X_train,y_train,clf,"TREE",activeEncoded)
 
+    #Plotting tree
+    plt.figure(figsize=(12,12))
+    plot_tree(clf, fontsize=6)
+    plt.savefig('./Images/treePlot.png', dpi=100)
 
+
+
+
+
+
+#######################################################################################
+#svm classification
 def SvmBased(X_train,y_train,X_test,y_test,activeEncoded):
-    classesMetrics=['0','1','2','3','4','5','6','7','8','9']
+    print("\n\n========\n\n")
+    print("SVM classification linear")
     #https://scikit-learn.org/stable/modules/generated/sklearn.svm.SVC.html#sklearn.svm.SVC
+
     clf_linear = SVC(kernel= 'linear', C=0.1,class_weight='balanced')
     clf_linear.fit(X_train, y_train)
+
     predictions = clf_linear.predict(X_test)
     print("SVM accuracy LINEAR",accuracy_score(y_test, predictions))
     classes=np.unique(y_test)
@@ -86,29 +106,32 @@ def SvmBased(X_train,y_train,X_test,y_test,activeEncoded):
     cm = confusion_matrix(y_test, predictions, labels=clf_linear.classes_)
     plot_confusion_matrix(cm,classes,"SVM_linear",activeEncoded)
 
-    print("SVM linear")
+    print("SVM linear REPORT")
     print(classification_report(y_test, predictions, target_names=classesMetrics))
 
     print("------------")
-
+    #----------------------------------------------------------------------------------------
+    print("SVM classification poly")
     clf_poly = SVC(kernel= 'poly', C=0.1,class_weight='balanced')
     clf_poly.fit(X_train, y_train)
     predictions = clf_poly.predict(X_test)
-    print("SVM accuracy",accuracy_score(y_test, predictions))
+    print("SVM POLY accuracy",accuracy_score(y_test, predictions))
     classes=np.unique(y_test)
 
     plt.close()
     cm = confusion_matrix(y_test, predictions, labels=clf_poly.classes_)
     plot_confusion_matrix(cm,classes,"SVM_poly",activeEncoded)
 
-    print("SVM poly")
+    print("SVM poly Report")
     print(classification_report(y_test, predictions, target_names=classesMetrics))
 
     print("------------")
-
+    #----------------------------------------------------------------------------------------
+    print("SVM classification rbf")
     clf_rbf = SVC(kernel= 'rbf', C=0.1,class_weight='balanced')
     clf_rbf.fit(X_train, y_train)
     predictions = clf_rbf.predict(X_test)
+    
     print("SVM rbf accuracy",accuracy_score(y_test, predictions))
     classes=np.unique(y_test)
 
@@ -116,7 +139,7 @@ def SvmBased(X_train,y_train,X_test,y_test,activeEncoded):
     cm = confusion_matrix(y_test, predictions, labels=clf_rbf.classes_)
     plot_confusion_matrix(cm,classes,"SVM_rbf",activeEncoded)
 
-    print("SVM RBF")
+    print("SVM RBF Report")
     print(classification_report(y_test, predictions, target_names=classesMetrics))
     #PlotTrainErrors(X_train,y_train,clf_rbf,"SVM RBF",activeEncoded)
 
@@ -137,7 +160,11 @@ if __name__ == "__main__":
     with open('./bin/resources/testing_encodedDf.pickle', 'rb') as data:
         testingDataset_encoded = pickle.load(data)
 
+    with open('./bin/resources/training-sampled_encodedDf.pickle', 'rb') as data:
+        trainingDataset_sampled_encoded = pickle.load(data)
+
     print(trainingDataset_encoded.shape)
+    print(trainingDataset_sampled_encoded.shape)
 
 
     #Our scope is classifying the poker hand by check card after card?!
@@ -149,10 +176,10 @@ if __name__ == "__main__":
     # 
 
     #Classification
-
-    #LogReg as classification
-
+    #LogReg as classification ?
     #Map  bayes
+    #Tree
+    #
 
     y_train = trainingDataset['G']
     X_train = trainingDataset[['S1', 'R1','S2', 'R2','S3', 'R3','S4', 'R4','S5','R5']]
@@ -164,20 +191,22 @@ if __name__ == "__main__":
     X_train_encoded = trainingDataset_encoded.loc[:, trainingDataset_encoded.columns != 'label']
     y_train_encoded = trainingDataset_encoded.loc[:, trainingDataset_encoded.columns == 'label'].values.ravel()
 
-
     X_test_encoded = testingDataset_encoded.loc[:, testingDataset_encoded.columns != 'label']
     y_test_encoded = testingDataset_encoded.loc[:, testingDataset_encoded.columns == 'label'].values.ravel()
 
+    X_train_sampled_encoded = trainingDataset_sampled_encoded.loc[:, trainingDataset_sampled_encoded.columns != 'label']
+    y_train_sampled_encoded = trainingDataset_sampled_encoded.loc[:, trainingDataset_sampled_encoded.columns == 'label'].values.ravel()
+    
+
+    #TAKE a percentage
+    X_train_encoded, X_test_encoded, y_train_encoded, y_test_encoded = train_test_split(X_train_sampled_encoded, y_train_sampled_encoded, test_size=0.3, random_state=0, stratify=y_train_sampled_encoded)
+
+    print("Taking percentage")
+    print(X_train_encoded.shape)
 
     y_values = set(y_train.values)
     #print(y_values)
     
-    # for value in y_values:
-    #      tmp = X_train[X_train.G == value]
-    #      ax = tmp.hist(column=['S1', 'R1','S2', 'R2','S3', 'R3','S4', 'R4','S5','R5'])
-    #      plt.title("Histogram of :"+str(value))  #Fix doesn't show
-    #      #plt.show()
-    #      plt.cla()
     """
     sns.distplot(trainingDataset['G'])
     plt.show()
@@ -188,19 +217,23 @@ if __name__ == "__main__":
     #print(trainingDataset.plot.area())
 
     #Density plot of our features
-    rankPlot = X_train[[ 'R1', 'R2', 'R3', 'R4','R5']]
+    #rankPlot = X_train[[ 'R1', 'R2', 'R3', 'R4','R5']]
+    rankPlot = X_train_encoded[[ 'Asso', 'Due', 'Tre', 'Quattro', 'Cinque', 'Sei', 'Sette', 'Otto','Nove', 'Dieci', 'Principe','Regina','Re']]
+    
     suitPlot = X_train[['S1','S2','S3','S4','S5']]
 
     rankPlot.plot.kde() 
     #plt.show() # gaussian partial
     plt.close()
 
+
     suitPlot.plot.kde()
     #plt.show()  #comb
     plt.close()
 
 
-    
+    #zScore#
+    """
     X_train_scored = pd.DataFrame()
     X_test_scored = pd.DataFrame()
     for col in X_train.columns:
@@ -219,24 +252,20 @@ if __name__ == "__main__":
     #plt.show()  #comb
     plt.close()
 
-
-    #Transformation dummies with 1/0 of ranks => bernulli event?!
-
-
     print("Describe rank suit scored")
     print(rankPlot_scored.describe())
     print("\n\n===================\n\n")
     print(suitPlot_scored.describe())
+    """
+
+
+    #Transformation dummies with 1/0 of ranks => bernulli event?!
+
 
     activeEncoded=0
-    #BayesComputingClassification(X_train,y_train,X_test,y_test)
-    print("\n\n========\n\n")
-    #negative 
-    #BayesComputingClassification(X_train_scored,y_train,X_test,y_test)
-    print("\n\n===================\n\n")
+    #BayesComputingClassification(X_train,y_train,X_test,y_test,activeEncoded)
     #TreeBased(X_train,y_train,X_test,y_test,activeEncoded)
-    print("\n\n========\n\n")
-    #SvmBased(X_train_scored,y_train,X_test_scored,y_test,activeEncoded,activeEncoded)
+    #SvmBased(X_train,y_train,X_test,y_test,activeEncoded)
 
 
     print("ENCODED CLASSIFICATION")
