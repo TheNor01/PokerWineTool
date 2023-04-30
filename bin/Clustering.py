@@ -69,10 +69,9 @@ def ApplyPCA(X_train):
     pca = PCA(n_components = 0.90) 
     trasformedDf = pca.fit_transform(X_train)
 
-    print("Shape pca")
-    print(trasformedDf.shape)
+    print("cumsum variance pca")
+    print(pca.explained_variance_ratio_.cumsum)
 
-    #https://plotly.com/python/pca-visualization/
 
     # plt.scatter(x=plot_columns[:,0], y=plot_columns[:,1], c=model.labels_,) # plot 1st canonical variable on x axis, 2nd on y-axis
     # plt.xlabel('Canonical variable 1')
@@ -87,7 +86,7 @@ def ApplyPCA(X_train):
     plt.ylabel('Variance Explained')
     plt.show()
 
-    return X_train_pca
+    return trasformedDf
     
 
 if __name__ == "__main__":
@@ -102,7 +101,6 @@ if __name__ == "__main__":
 
     with open('./bin/resources/testing_encodedDf.pickle', 'rb') as data:
         testingDataset_encoded = pickle.load(data)
-    #https://jasminedaly.com/2016-05-25-kmeans-analysis-in-python/
 
     #How can we see them in a 2 space? Maybe a linear combination?
      

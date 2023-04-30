@@ -5,6 +5,7 @@ from matplotlib import pyplot as plt
 from statistics import mean
 import itertools
 import seaborn as sns
+import scipy.stats
 
 #10 predictive features 
 # 
@@ -119,7 +120,6 @@ if __name__ == "__main__":
 
 
     auxCount = trainingCards[['C1', 'C2', 'C3','C4','C5']].value_counts()
-    print(auxCount.head(10))
     print(trainingCards[['C1', 'C2', 'C3','C4','C5']].value_counts(normalize=True).head(3))
 
 
@@ -127,9 +127,12 @@ if __name__ == "__main__":
     #Suit and Ranks correlation: https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.Series.corr.html
 
     #We want to see if a card id related to label
-    print("Calculating CORR...")
+    print("Calculating CORR pairs...")
     corr = trainingCards.astype(float).corrwith(trainingCards['G'],axis=0)
     print(corr[corr > 0.00001])
+
+   
+
     
     #Seems that cards on C1,C3 are related to the poker hand, let's see which card are they
     filter = trainingCards["G"] != 0.0

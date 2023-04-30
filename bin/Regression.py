@@ -9,7 +9,7 @@ from scipy.stats import zscore
 from matplotlib import pyplot as plt
 from sklearn.feature_selection import SequentialFeatureSelector
 from utility.UtilityFunctions import ReadDataset
-
+import pickle
 
 def DoBackWardManual(trainingDataset):
     #Backward Forward
@@ -106,6 +106,13 @@ if __name__ == "__main__":
 
     y_test = testingDataset['G']
     X_test = testingDataset[['S1', 'R1','S2', 'R2','S3', 'R3','S4', 'R4','S5','R5']]
+    
+
+    with open('./bin/resources/testing_encodedDf.pickle', 'rb') as data:
+        testingDataset_encoded = pickle.load(data)
+
+    with open('./bin/resources/training-sampled_encodedDf.pickle', 'rb') as data:
+        trainingDataset_sampled_encoded = pickle.load(data)
 
     #print(X_train)
 
@@ -127,7 +134,9 @@ if __name__ == "__main__":
 
     #Feature selection for regression task
     #Every Card is revelant in order to achieve a Poker hand
-    DoBackWardManual(X_train)
+    
+    
+    #DoBackWardManual(X_train)
 
     featuresSelected = DoBackWardAutomatic(X_train,y_train)
 
@@ -189,3 +198,7 @@ if __name__ == "__main__":
     y_pred_reg = logreg.predict(X_test_scored)
     score = r2_score(y_test,y_pred_reg)*100
     print("R2 Score scored log",score)
+
+
+
+#try it https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegression.html

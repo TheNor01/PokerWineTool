@@ -25,8 +25,7 @@ BAYES = "BAYES"
 classesMetrics=['0','1','2','3','4','5','6','7','8','9']
 
 
-#https://github.com/ss80226/MAP_estimation/tree/master/report
-#https://python.quantecon.org/mle.html
+#try it: https://scikit-learn.org/stable/modules/classes.html#module-sklearn.multiclass
 
 
 
@@ -62,7 +61,7 @@ def TreeBased (X_train,y_train,X_test,y_test,activeEncoded):
     print("\n\n========\n\n")
     print(TREE+": classification")
 
-    #
+    #try it https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html
     clf = DecisionTreeClassifier(criterion='gini',max_depth=6,class_weight='balanced')
     clf = clf.fit(X_train,y_train)
 
