@@ -191,13 +191,24 @@ if __name__ == "__main__":
     print(X_train_scored.var())
 
     #Calculate LOG REG with scored dataset
-    logreg = LogisticRegression(random_state=16,max_iter=1000)
+    logreg = LogisticRegression(random_state=16,dual=False,class_weight='balanced',solver='newton-cg',multi_class='auto')
     # fit the model with data
     logreg.fit(X_train_scored,y_train)
 
     y_pred_reg = logreg.predict(X_test_scored)
     score = r2_score(y_test,y_pred_reg)*100
     print("R2 Score scored log",score)
+
+
+    print("ENCODED LOG REG")
+    y_train_sampled_encoded = trainingDataset_sampled_encoded.loc[:, trainingDataset_sampled_encoded.columns == 'label'].values.ravel()
+    logreg.fit(trainingDataset_sampled_encoded,y_train_sampled_encoded)
+
+    y_pred_reg_encoded = logreg.predict(testingDataset_encoded)
+    score = r2_score(y_test,y_pred_reg)*100
+
+    print("scored log encoded",score)
+    
 
 
 

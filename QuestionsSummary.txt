@@ -33,7 +33,7 @@ chiare le proprietà più rilevanti dei dati. I grafici prodotti vanno motivati:
 tappeto dei grafici è da considerarsi come un errore.
 
 
-OK. Crosstab increasing 
+TBD
 
 
 
@@ -80,3 +80,22 @@ dati. Validare i risultati.
 9) Conclusioni. Riassumere brevemente in un testo discorsivo i risultati più significativi
 ottenuti. Commentare i risultati che appaiono deboli e indicare quali potrebbero essere le
 soluzioni per migliorare i risultati dell’analisi.
+
+
+
+
+----------
+
+
+
+Regressione: 
+prendere nuovo dataset e applicare i punti sopra
+https://archive.ics.uci.edu/ml/datasets/Fertility
+
+
+
+Classificazione:
+Prendo una cinquina di carte e randomicamente ne tolgo due, mantenendo la label.
+
+https://www.chegg.com/homework-help/questions-and-answers/use-python-solve-programming-assignment-simulate-regular-poker-game-otherwise-known-5-card-q31336555
+
