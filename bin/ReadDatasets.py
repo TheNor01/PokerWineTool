@@ -166,8 +166,46 @@ def OversampleDataset(dataset,target):
 
     return mergedDf
 
+def swapFirst(x):
+    return 'R'+x[1:]
+
+def CreatePartialTR(trainingDataset):
+
+    numberDrops = 2
+
+    dropIndex = ['S1','S2','S3','S4','S5']
+
+    Allrows = []
+    for index,rows in trainingDataset.iterrows():
+        #print(rows)
+        #print(type(rows))
+        sample_index_toDrop = random.sample(dropIndex, numberDrops)
+        #print("DELETING SUIT",sample_index_toDrop)
+
+        rank_to_delete= list(map(swapFirst, sample_index_toDrop))
+        #print("DELETING RANKS",rank_to_delete)
+
+        sample_index_toDrop.extend(rank_to_delete)
+        #print(sample_index_toDrop)
+        newRow = rows.drop(labels=sample_index_toDrop).reset_index(drop = True).tolist()
+        print(newRow)
+        if(len(newRow)) > 7: 
+            print("WARNING")
+            print(sample_index_toDrop)
 
 
+        Allrows.append(newRow)
+
+    newColumns = ['S1', 'R1', 'S2', 'R2', 'S3', 'R3', 'G']
+    droppedTR = pd.DataFrame(Allrows, columns=newColumns)
+
+    print(droppedTR)
+    print(droppedTR.shape)
+
+    with open("./bin/resources/droppedTR_encodedDf.pickle", 'wb') as output:
+            pickle.dump(droppedTR, output)
+    
+    return droppedTR
             
 #Main start
 
@@ -175,6 +213,15 @@ if __name__ == "__main__":
     #fare in modo che se c'è un false esce
     print("### TRAINING ###")
     trainingDataset = ReadDataset("./bin/resources/poker-hand-training-true.data")
+
+
+    print(trainingDataset)
+
+    print("DROPPING...")
+    partialTR = CreatePartialTR(trainingDataset)
+
+
+    exit()
 
     CheckIntegrityDataset(trainingDataset)
 

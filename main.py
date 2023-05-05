@@ -19,6 +19,23 @@ import seaborn as sn
 from sklearn.decomposition import PCA
 import matplotlib.cm as cm
 
+
+
+
+with open('./bin/resources/training_encodedDf.pickle', 'rb') as data:
+        trainingDataset = pickle.load(data)
+
+
+
+
+
+
+
+
+
+exit()
+
+
 with open('./bin/resources/training_encodedDf.pickle', 'rb') as data:
         trainingDataset_encoded = pickle.load(data)
 
