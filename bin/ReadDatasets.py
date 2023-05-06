@@ -149,7 +149,7 @@ def PlotCrossTab(trainingDataset):
 def OversampleDataset(dataset,target):
 
     y_train = dataset['G']
-    X_train = dataset[['S1', 'R1','S2', 'R2','S3', 'R3','S4', 'R4','S5','R5']]
+    X_train = dataset.loc[:, dataset.columns != 'G']
 
     print("OVERSAMPLING")
     
@@ -188,7 +188,7 @@ def CreatePartialTR(trainingDataset):
         sample_index_toDrop.extend(rank_to_delete)
         #print(sample_index_toDrop)
         newRow = rows.drop(labels=sample_index_toDrop).reset_index(drop = True).tolist()
-        print(newRow)
+        #print(newRow)
         if(len(newRow)) > 7: 
             print("WARNING")
             print(sample_index_toDrop)
@@ -202,7 +202,7 @@ def CreatePartialTR(trainingDataset):
     print(droppedTR)
     print(droppedTR.shape)
 
-    with open("./bin/resources/droppedTR_encodedDf.pickle", 'wb') as output:
+    with open("./bin/resources/droppedTR.pickle", 'wb') as output:
             pickle.dump(droppedTR, output)
     
     return droppedTR
@@ -213,13 +213,22 @@ if __name__ == "__main__":
     #fare in modo che se c'è un false esce
     print("### TRAINING ###")
     trainingDataset = ReadDataset("./bin/resources/poker-hand-training-true.data")
-
+    testingDataset = ReadDataset("./bin/resources/poker-hand-testing.data")
 
     print(trainingDataset)
 
     print("DROPPING...")
     partialTR = CreatePartialTR(trainingDataset)
+    partialTS = CreatePartialTR(testingDataset)
 
+
+    # define oversampling strategy
+    target = 3000
+    oversampledDf_dropped = OversampleDataset(partialTR,target)
+
+    print("ENCODING TRAINING sampled dropped")
+    training_encoded_sampled_Df_dropped = ApplyTrasformation(oversampledDf_dropped,"training-sampled-dropped")
+    test_encoded_sampled_Df_dropped = ApplyTrasformation(partialTS,"test-dropped")
 
     exit()
 
@@ -248,9 +257,7 @@ if __name__ == "__main__":
     PlotCrossTab(trainingDataset)
 
     ...
-    # define oversampling strategy
-    target = 3000
-    oversampledDf = OversampleDataset(trainingDataset,target)
+   
 
 
     plt.close()

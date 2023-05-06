@@ -8,6 +8,7 @@ import seaborn as sns
 from scipy.stats import zscore
 from sklearn.naive_bayes import ComplementNB,MultinomialNB
 from sklearn.tree import DecisionTreeClassifier,plot_tree
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.svm import SVC
 from sklearn.metrics import accuracy_score,confusion_matrix
 import pickle
@@ -83,7 +84,17 @@ def TreeBased (X_train,y_train,X_test,y_test,activeEncoded):
     plt.savefig('./Images/treePlot.png', dpi=100)
 
 
+def RandomForest(X_train,y_train,X_test,y_test,activeEncoded):
+    clf = RandomForestClassifier(max_depth=None, random_state=0,n_estimators=10000,min_samples_leaf=3,min_samples_split=2,max_features='sqrt')
+    clf = clf.fit(X_train,y_train)
 
+    predictions = clf.predict(X_test)
+    print(TREE+":ACC",accuracy_score(y_test, predictions))
+    classes=np.unique(y_test)
+
+    plt.close()
+    cm = confusion_matrix(y_test, predictions, labels=clf.classes_)
+    plot_confusion_matrix(cm,classes,"TREE",activeEncoded)
 
 
 
@@ -153,6 +164,7 @@ if __name__ == "__main__":
     trainingDataset = ReadDataset("./bin/resources/poker-hand-training-true.data")
     testingDataset = ReadDataset("./bin/resources/poker-hand-testing.data")
 
+    """
     with open('./bin/resources/training_encodedDf.pickle', 'rb') as data:
         trainingDataset_encoded = pickle.load(data)
 
@@ -161,10 +173,18 @@ if __name__ == "__main__":
 
     with open('./bin/resources/training-sampled_encodedDf.pickle', 'rb') as data:
         trainingDataset_sampled_encoded = pickle.load(data)
+    
+    """
+    
+    with open('./bin/resources/training-sampled-dropped_encodedDf.pickle', 'rb') as data:
+        training_sampled_encoded_dropped = pickle.load(data)
 
-    print(trainingDataset_encoded.shape)
-    print(trainingDataset_sampled_encoded.shape)
+    with open('./bin/resources/test-dropped_encodedDf.pickle', 'rb') as data:
+        test_encoded_dropped = pickle.load(data)
 
+
+    print(training_sampled_encoded_dropped)
+    print(test_encoded_dropped)
 
     #Our scope is classifying the poker hand by check card after card?!
     # 
@@ -180,6 +200,7 @@ if __name__ == "__main__":
     #Tree
     #
 
+    """
     y_train = trainingDataset['G']
     X_train = trainingDataset[['S1', 'R1','S2', 'R2','S3', 'R3','S4', 'R4','S5','R5']]
 
@@ -195,8 +216,22 @@ if __name__ == "__main__":
 
     X_train_sampled_encoded = trainingDataset_sampled_encoded.loc[:, trainingDataset_sampled_encoded.columns != 'label']
     y_train_sampled_encoded = trainingDataset_sampled_encoded.loc[:, trainingDataset_sampled_encoded.columns == 'label'].values.ravel()
-    
+    """
+    #dropped
+    X_train_sampled_encoded_dropped = training_sampled_encoded_dropped.loc[:, training_sampled_encoded_dropped.columns != 'label']
+    y_train_sampled_encoded_dropped = training_sampled_encoded_dropped.loc[:, training_sampled_encoded_dropped.columns == 'label'].values.ravel()
 
+    X_test_encoded_dropped = test_encoded_dropped.loc[:, test_encoded_dropped.columns != 'label']
+    y_test_encoded_dropped = test_encoded_dropped.loc[:, test_encoded_dropped.columns == 'label'].values.ravel()
+
+
+    print(X_train_sampled_encoded_dropped)
+    print(y_train_sampled_encoded_dropped)
+
+    TreeBased(X_train_sampled_encoded_dropped,y_train_sampled_encoded_dropped,X_test_encoded_dropped,y_test_encoded_dropped,1)
+    RandomForest(X_train_sampled_encoded_dropped,y_train_sampled_encoded_dropped,X_test_encoded_dropped,y_test_encoded_dropped,1)
+
+    exit()
     #TAKE a percentage
     X_train_encoded, X_test_encoded, y_train_encoded, y_test_encoded = train_test_split(X_train_sampled_encoded, y_train_sampled_encoded, test_size=0.3, random_state=0, stratify=y_train_sampled_encoded)
 
@@ -271,7 +306,7 @@ if __name__ == "__main__":
     activeEncoded=1
     #TreeBased(X_train_encoded,y_train_encoded,X_test_encoded,y_test_encoded,activeEncoded,activeEncoded)
     #BayesComputingClassification(X_train_encoded,y_train_encoded,X_test_encoded,y_test_encoded,activeEncoded)
-    SvmBased(X_train_encoded,y_train_encoded,X_test_encoded,y_test_encoded,activeEncoded)
+    #SvmBased(X_train_encoded,y_train_encoded,X_test_encoded,y_test_encoded,activeEncoded)
 
 
 
