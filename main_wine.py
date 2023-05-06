@@ -36,6 +36,7 @@ import pandas as pd
 from matplotlib import pyplot as plt
 import seaborn as sn
 import numpy as np
+from sklearn.feature_selection import SequentialFeatureSelector,SelectKBest,chi2
 from scipy.stats import zscore
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression,LogisticRegression,RidgeCV
@@ -79,6 +80,73 @@ def PrintShapeGraph(dataset):
     plt.title("Classes of Dataset")
     plt.show()
 
+
+def calculateStatsModel(y_test,y_predective_linear):
+    score = r2_score(y_test,y_predective_linear)*100
+    print("R2 Score original",score)
+
+    print("R2 ADJ with p regressor")
+    print(1-(1-score)*((len(X_test)-1)/(len(X_test)-len(X_test.columns)-1)))
+
+    print('MAE LR:', mean_absolute_error(y_test, y_predective_linear))
+    print('MSE LR:', mean_squared_error(y_test, y_predective_linear))
+    print('RMSE LR:', np.sqrt(mean_squared_error(y_test, y_predective_linear)))
+
+
+def plotTrainTestError():
+    #### SCATTER PLOT - TRAIN
+    plt.scatter(fit_results.index,  fit_results['Y_TRUE'], alpha = 0.4, s = 12, label = 'Y_TRUE')
+    plt.scatter(fit_results.index,  fit_results['Y_FIT'], alpha = 0.4, s = 12, label = 'Y_FIT')
+    plt.xlabel('Y_TRUE_RANK (SORTED)')
+    plt.ylabel('wine label')
+    plt.title('TRAIN SET')
+    plt.legend()
+
+    plt.show()
+
+    plt.cla()
+    #### SCATTER PLOT - TEST
+    plt.scatter(test_pred_results.index,  test_pred_results['Y_TRUE'], alpha = 0.6, s = 12, label = 'Y_TRUE')
+    plt.scatter(test_pred_results.index,  test_pred_results['Y_PRED'], alpha = 0.4, s = 12, label = 'Y_PRED')
+    plt.xlabel('Y_TRUE_RANK (SORTED)')
+    plt.ylabel('wine label')
+    plt.title('TEST SET')
+    plt.legend()
+    plt.show()
+
+
+def plotResiduals(y_test,y_predective_linear):
+    residuals = y_test - y_predective_linear
+    print("Residuals",residuals)
+    print("predective ",y_predective_linear)
+
+    plt.scatter(y_predective_linear, residuals)
+    plt.xlabel('Predicted Values')
+    plt.ylabel('Residuals')
+    plt.axhline(y=0, color='r', linestyle='-')
+    plt.title('Residual Plot')
+    plt.show()
+
+    plt.cla()
+    plt.close()
+
+    #ok, it follows a gaussian, not a clear one
+    plt.hist(residuals, bins=10)
+    plt.xlabel('Residuals')
+    plt.ylabel('Frequency')
+    plt.title('Histogram of Residuals')
+    plt.show()
+
+
+    print(type(residuals))
+    print("AVG residuals",residuals.mean())
+    print("VARIANCE residuals",residuals.var())
+
+def DoBackWardAutomatic(X_train,y_train):
+    feature_names = np.array(X_train.columns)
+    backWard_model_linear = SequentialFeatureSelector(regressorLinear, n_features_to_select=7,direction='backward').fit(X_train, y_train)
+    print("Features selected by backward sequential selection: "f"{feature_names[backWard_model_linear.get_support()]}")
+    #X_new = SelectKBest(chi2, k=5).fit_transform(X, y)
 
 
 print(os.getcwd())
@@ -134,7 +202,7 @@ print(X_train_scored.describe())
 #https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.cov.html
 cov_matrix = pd.DataFrame.cov(unionWine)
 sn.heatmap(cov_matrix, annot=False, fmt='g')
-plt.show()
+#plt.show()
 
 
 #Correlation pearson
@@ -144,14 +212,14 @@ fig, ax = plt.subplots(figsize=(10, 6))
 pearsonDf = unionWine.corr().abs()
 sn.heatmap(pearsonDf, ax=ax, annot=True)
 plt.title("pearson CORR")
-plt.show()
+#plt.show()
 
 
 kendallDf = unionWine.corr(method='kendall').abs()
 fig, ax = plt.subplots(figsize=(10, 6))
 sn.heatmap(kendallDf, ax=ax, annot=True)
 plt.title("kendall CORR")
-plt.show()
+#plt.show()
 
 s = pearsonDf.unstack()
 so = s.sort_values(kind="quicksort")
@@ -181,25 +249,71 @@ y_train_scored = X_train_scored.loc[:, X_train_scored.columns == 'wineLabel'].va
 X_train, X_test, y_train, y_test = train_test_split(X_train_scored, y_train_scored, test_size = 0.2, random_state = 42)
 
 
+print("Y_TRAIN:",y_train)
+
 X_test.drop('wineLabel', axis=1, inplace=True)
 X_train.drop('wineLabel', axis=1, inplace=True)
 
 
-print(X_test)
-print(y_test)
+#print(X_test)
+#print(y_test)
 """
 REGRESSION LINEAR
 
 
 """
 
+#Multivariate LINEAR REGRESSION
+#PAGE 168
+
 regressorLinear = LinearRegression()
 regressorLinear.fit(X_train,y_train)
 
 y_predective_linear = regressorLinear.predict(X_test)
-score = r2_score(y_test,y_predective_linear)*100
-print("R2 Score original",score)
 
-print('MAE:', mean_absolute_error(y_test, y_predective_linear))
-print('MSE:', mean_squared_error(y_test, y_predective_linear))
-print('RMSE:', np.sqrt(mean_squared_error(y_test, y_predective_linear)))
+
+#Study errors
+fit_results = pd.DataFrame(y_train)
+fit_results.columns = ['Y_TRUE']
+test_pred_results = pd.DataFrame(y_test)
+test_pred_results.columns = ['Y_TRUE']
+
+fit_results['Y_FIT'] = regressorLinear.predict(X_train).ravel() ##test train error
+test_pred_results['Y_PRED'] = y_predective_linear # test test error
+
+fit_results = fit_results.sort_values(by = ['Y_TRUE']).reset_index(drop = True)
+test_pred_results = test_pred_results.sort_values(by = ['Y_TRUE']).reset_index(drop = True)
+
+
+plotTrainTestError(fit_results,test_pred_results)
+
+plt.cla()
+
+
+#Calculate residual average, variance
+
+plotResiduals(y_test,y_predective_linear)
+
+#Can we do a better score?
+
+#try another linear regressior, or logistic
+
+#OLS and F distribution
+
+calculateStatsModel(y_test,y_predective_linear)
+
+#FEATURE SELECTION with AIC consideration
+columns_selected = DoBackWardAutomatic(X_train,y_train)
+
+X_train_selected = X_train[columns_selected].copy()
+X_test_selected = X_test[columns_selected].copy()
+
+regressorLinear_sel = LinearRegression()
+regressorLinear_sel.fit(X_train_selected,y_train)
+
+y_predective_linear = regressorLinear_sel.predict(X_test_selected)
+
+calculateStatsModel(y_test,y_predective_linear)
+
+
+plotTrainTestError()
