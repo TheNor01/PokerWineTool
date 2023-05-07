@@ -38,6 +38,7 @@ import seaborn as sn
 import numpy as np
 from sklearn.feature_selection import SequentialFeatureSelector,SelectKBest,chi2
 from scipy.stats import zscore
+from sklearn.decomposition import PCA
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression,LogisticRegression,RidgeCV
 from sklearn.metrics import r2_score,mean_squared_error,mean_absolute_error
@@ -93,7 +94,7 @@ def calculateStatsModel(y_test,y_predective_linear):
     print('RMSE LR:', np.sqrt(mean_squared_error(y_test, y_predective_linear)))
 
 
-def plotTrainTestError():
+def plotTrainTestError(fit_results,test_pred_results):
     #### SCATTER PLOT - TRAIN
     plt.scatter(fit_results.index,  fit_results['Y_TRUE'], alpha = 0.4, s = 12, label = 'Y_TRUE')
     plt.scatter(fit_results.index,  fit_results['Y_FIT'], alpha = 0.4, s = 12, label = 'Y_FIT')
@@ -146,8 +147,42 @@ def DoBackWardAutomatic(X_train,y_train):
     feature_names = np.array(X_train.columns)
     backWard_model_linear = SequentialFeatureSelector(regressorLinear, n_features_to_select=7,direction='backward').fit(X_train, y_train)
     print("Features selected by backward sequential selection: "f"{feature_names[backWard_model_linear.get_support()]}")
+    
+    
+    return feature_names[backWard_model_linear.get_support()]
     #X_new = SelectKBest(chi2, k=5).fit_transform(X, y)
 
+
+def makeDataframeResult(y_train,y_test,model,y_predective_linear,X_train):
+    fit_results = pd.DataFrame(y_train)
+    fit_results.columns = ['Y_TRUE']
+    test_pred_results = pd.DataFrame(y_test)
+    test_pred_results.columns = ['Y_TRUE']
+
+    fit_results['Y_FIT'] = model.predict(X_train).ravel() ##test train error
+    test_pred_results['Y_PRED'] = y_predective_linear # test test error
+
+    fit_results = fit_results.sort_values(by = ['Y_TRUE']).reset_index(drop = True)
+    test_pred_results = test_pred_results.sort_values(by = ['Y_TRUE']).reset_index(drop = True)
+
+    return fit_results,test_pred_results
+
+def ApplyPCA(X_train):
+    pca = PCA(n_components = 0.90) 
+    trasformedDf = pca.fit_transform(X_train)
+
+    print("cumsum variance pca")
+    print(pca.explained_variance_ratio_.cumsum())
+
+
+    PC_values = np.arange(pca.n_components_)+1
+    plt.plot(PC_values, pca.explained_variance_ratio_, 'o-', linewidth=2, color='blue')
+    plt.title('Scree Plot')
+    plt.xlabel('Principal Component')
+    plt.ylabel('Variance Explained')
+    plt.show()
+
+    return trasformedDf
 
 print(os.getcwd())
 
@@ -200,9 +235,10 @@ print(X_train_scored.describe())
 
 #check covariance matrice
 #https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.cov.html
-cov_matrix = pd.DataFrame.cov(unionWine)
-sn.heatmap(cov_matrix, annot=False, fmt='g')
-#plt.show()
+cov_matrix = pd.DataFrame.cov(X_train_scored)
+sn.heatmap(cov_matrix, annot=False,cbar=True, fmt='g')
+plt.title("COVARIANCE MATRIX")
+plt.show()
 
 
 #Correlation pearson
@@ -266,24 +302,15 @@ REGRESSION LINEAR
 #Multivariate LINEAR REGRESSION
 #PAGE 168
 
-regressorLinear = LinearRegression()
-regressorLinear.fit(X_train,y_train)
+regressorLinear = LinearRegression().fit(X_train,y_train)
 
 y_predective_linear = regressorLinear.predict(X_test)
 
 
 #Study errors
-fit_results = pd.DataFrame(y_train)
-fit_results.columns = ['Y_TRUE']
-test_pred_results = pd.DataFrame(y_test)
-test_pred_results.columns = ['Y_TRUE']
 
-fit_results['Y_FIT'] = regressorLinear.predict(X_train).ravel() ##test train error
-test_pred_results['Y_PRED'] = y_predective_linear # test test error
 
-fit_results = fit_results.sort_values(by = ['Y_TRUE']).reset_index(drop = True)
-test_pred_results = test_pred_results.sort_values(by = ['Y_TRUE']).reset_index(drop = True)
-
+fit_results,test_pred_results = makeDataframeResult(y_train,y_test,regressorLinear,y_predective_linear,X_train)
 
 plotTrainTestError(fit_results,test_pred_results)
 
@@ -303,17 +330,50 @@ plotResiduals(y_test,y_predective_linear)
 calculateStatsModel(y_test,y_predective_linear)
 
 #FEATURE SELECTION with AIC consideration
-columns_selected = DoBackWardAutomatic(X_train,y_train)
+
+print("BACKWARD SELECTION")
+
+columns_selected = DoBackWardAutomatic(X_train,y_train).tolist()
+
+print(type(columns_selected))
 
 X_train_selected = X_train[columns_selected].copy()
 X_test_selected = X_test[columns_selected].copy()
 
-regressorLinear_sel = LinearRegression()
-regressorLinear_sel.fit(X_train_selected,y_train)
+regressorLinear_sel = LinearRegression().fit(X_train_selected,y_train)
 
+print("STATS SELECTED FEATURES MODEL ")
 y_predective_linear = regressorLinear_sel.predict(X_test_selected)
 
 calculateStatsModel(y_test,y_predective_linear)
+plotResiduals(y_test,y_predective_linear)
+
+fit_results,test_pred_results = makeDataframeResult(y_train,y_test,regressorLinear_sel,y_predective_linear,X_train_selected)
+
+plotTrainTestError(fit_results,test_pred_results)
 
 
-plotTrainTestError()
+
+print("\n\n LOGISTIC REGRESSION ")
+
+#https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegression.html
+logreg = LogisticRegression(dual=False,class_weight='balanced',multi_class='ovr').fit(X_train_selected,y_train)
+
+print("STATS SELECTED FEATURES MODEL ")
+y_predective_log= logreg.predict(X_test_selected)
+
+calculateStatsModel(y_test,y_predective_log)
+plotResiduals(y_test,y_predective_log)
+
+fit_results,test_pred_results = makeDataframeResult(y_train,y_test,logreg,y_predective_log,X_train_selected)
+
+plotTrainTestError(fit_results,test_pred_results)
+
+
+print("PCA ANALYSIS")
+
+pca_dataframe = ApplyPCA(X_train)
+
+print(pca_dataframe)
+
+#biplot
