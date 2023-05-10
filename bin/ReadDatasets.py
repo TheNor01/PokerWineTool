@@ -12,7 +12,8 @@ from imblearn import over_sampling
 import tkinter
 
 from utility.UtilityFunctions import ReadDataset,ApplyTrasformation
-
+from treys import Card
+from treys import Evaluator
 
 #10 predictive features 
 # 
@@ -37,6 +38,8 @@ from utility.UtilityFunctions import ReadDataset,ApplyTrasformation
         3: 'Quadri',
         4: 'Fiori'
         }
+
+    {Hearts, Spades, Diamonds, Clubs} //picche
 """
 
 #Questions 
@@ -189,14 +192,14 @@ def CreatePartialTR(trainingDataset):
         #print(sample_index_toDrop)
         newRow = rows.drop(labels=sample_index_toDrop).reset_index(drop = True).tolist()
         #print(newRow)
-        if(len(newRow)) > 7: 
+        if(len(newRow)) > 9: 
             print("WARNING")
             print(sample_index_toDrop)
 
 
         Allrows.append(newRow)
 
-    newColumns = ['S1', 'R1', 'S2', 'R2', 'S3', 'R3', 'G']
+    newColumns = ['S1', 'R1', 'S2', 'R2', 'S3', 'R3', 'G','score','isWinning']
     droppedTR = pd.DataFrame(Allrows, columns=newColumns)
 
     print(droppedTR)
@@ -209,16 +212,98 @@ def CreatePartialTR(trainingDataset):
             
 #Main start
 
+def transformHands(trainingDataset):
+    #cuori = 1 = h
+    #picche = 2 = s
+    #quadri = 3 = d
+    #fiori = 4 = c
+    suits= { 1: 'h', 2: 's', 3: 'd', 4:'c'}
+    rank = {1 : 'A',10 : 'T', 11:'J',12:'Q',13:'K' }
+    trasformed = trainingDataset.replace({"R1": rank,"S1": suits,"R2": rank,"S2": suits,"R3": rank,"S3": suits,"R4": rank,"S4": suits,"R5": rank,"S5": suits}).copy()
+    trasformed['C1'] = trasformed['R1'].map(str) + trasformed['S1'].map(str)
+    trasformed['C2'] = trasformed['R2'].map(str) + trasformed['S2'].map(str)
+    trasformed['C3'] = trasformed['R3'].map(str) + trasformed['S3'].map(str)
+    trasformed['C4'] = trasformed['R4'].map(str) + trasformed['S4'].map(str)
+    trasformed['C5'] = trasformed['R5'].map(str) + trasformed['S5'].map(str)
+
+    output =  trasformed[["C1","C2","C3","C4","C5"]].copy()
+
+    return output
+
+
+def calculateStrenght(trasformedDf,eval,outputDf,WS):
+
+
+    allScore=[]
+    isWinning = []
+    for index,rows in trasformedDf.iterrows():
+        hand = [Card.new(rows[0]),Card.new(rows[1]),Card.new(rows[2]),Card.new(rows[3]),Card.new(rows[4])]
+        board = []
+        score = eval.evaluate(hand,board)
+        #print(score)
+        allScore.append(score)
+        if(score <= WS): isWinning.append(1)
+        else: isWinning.append(0)
+
+    #we append it to a secondDataframe
+    
+    outputDf["score"] = allScore
+    outputDf["isWinning"] = isWinning
+
+    return outputDf
+
+
+
+
 if __name__ == "__main__":
     #fare in modo che se c'è un false esce
     print("### TRAINING ###")
     trainingDataset = ReadDataset("./bin/resources/poker-hand-training-true.data")
     testingDataset = ReadDataset("./bin/resources/poker-hand-testing.data")
 
-    print(trainingDataset)
+    hand = [Card.new("Th")]
+    Card.print_pretty_cards(hand)
+
+    cardsDF = transformHands(trainingDataset)
+    print(cardsDF)
+
+    evaluator = Evaluator()
+
+    #not trashold winning score
+
+    nWS = 4000
+    #Hand strength is valued on a scale of 1 to 7462, where 1 is a Royal Flush and 7462 is unsuited 7-5-4-3-2, as there are only 7642 distinctly ranked hands in poker.
+    scoreTR = calculateStrenght(cardsDF,evaluator,trainingDataset,nWS)
+
+    print(scoreTR)
+    print(scoreTR.shape)
+
+    #check to consider equality card, different score
+    print(scoreTR[scoreTR.G == 7])
+
+
+    
 
     print("DROPPING...")
-    partialTR = CreatePartialTR(trainingDataset)
+    partialTR = CreatePartialTR(scoreTR)
+    print(partialTR)
+
+    training_encoded__Df_dropped = ApplyTrasformation(partialTR,"training-dropped")
+    print(training_encoded__Df_dropped)
+
+    #training_encodedDf = ApplyTrasformation(trainingDataset,"training")
+
+
+
+    exit()
+
+
+
+    print("ENCODING TRAINING")
+
+
+
+    
     partialTS = CreatePartialTR(testingDataset)
 
 
@@ -230,7 +315,7 @@ if __name__ == "__main__":
     training_encoded_sampled_Df_dropped = ApplyTrasformation(oversampledDf_dropped,"training-sampled-dropped")
     test_encoded_sampled_Df_dropped = ApplyTrasformation(partialTS,"test-dropped")
 
-    exit()
+
 
     CheckIntegrityDataset(trainingDataset)
 
@@ -272,8 +357,7 @@ if __name__ == "__main__":
     # Basically the main idea is to count how many card there are in each valuation
     # With rank and suit. Thanks to it, we have a standard rapresentation of training/test set
 
-    print("ENCODING TRAINING")
-    training_encodedDf = ApplyTrasformation(trainingDataset,"training")
+    
 
     print("ENCODING TRAINING sampled")
     training_encoded_sampled_Df = ApplyTrasformation(oversampledDf,"training-sampled")

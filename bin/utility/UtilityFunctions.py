@@ -120,11 +120,14 @@ def ApplyTrasformation(trainingDataset,typeOfDs):
             listRank=[0,0,0,0,0,0,0,0,0,0,0,0,0]
             listSuit=[0,0,0,0]
             listLabel=[0]
+            listWinning=[0]
 
 
             for item in rows.items():
                 KindOfCard = str(item[0])
                 value = item[1]
+
+
                 if(KindOfCard.startswith('S')):
                     value=value-1
                     listSuit[value] =  listSuit[value] + 1
@@ -132,17 +135,18 @@ def ApplyTrasformation(trainingDataset,typeOfDs):
                 elif(KindOfCard.startswith('R')):
                     value=value-1
                     listRank[value] = 1
-                else:
+                elif(KindOfCard.startswith('G')):
                     listLabel[0] = value
-
-
-            tmpAggregator = listRank+listSuit+listLabel
+                else:
+                    listWinning[0] = value
+                
+            tmpAggregator = listRank+listSuit+listLabel+listWinning
             #print(tmpAggregator)
             Allrows.append(tmpAggregator)
         #print(len(Allrows))
 
         newColumns = ['Asso', 'Due', 'Tre', 'Quattro', 'Cinque', 'Sei', 'Sette', 'Otto',
-                      'Nove', 'Dieci', 'Principe','Regina','Re','rankCuori','rankPicche','rankQuadri','rankFiori','label']
+                      'Nove', 'Dieci', 'Principe','Regina','Re','rankCuori','rankPicche','rankQuadri','rankFiori','label','isWinning']
 
         if(not "sample" in typeOfDs):
             encodedDf = pd.DataFrame(Allrows, columns=newColumns).drop_duplicates()
