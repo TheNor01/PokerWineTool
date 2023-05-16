@@ -61,22 +61,30 @@ with open('./bin/resources/training-dropped_encodedDf.pickle', 'rb') as data:
 with open('./bin/resources/testing-dropped_encodedDf.pickle', 'rb') as data:
         droppedTS_encoded = pickle.load(data)
 
+with open('./bin/resources/training-sample-dropped_encodedDf.pickle', 'rb') as data:
+        droppedTR_encoded_sampled = pickle.load(data)
 
 
 print(droppedTR_encoded)
 
 droppedTR_encoded = droppedTR_encoded.drop('label', axis=1)
 droppedTS_encoded = droppedTS_encoded.drop('label', axis=1)
+droppedTR_encoded_sampled = droppedTR_encoded_sampled.drop('label', axis=1)
+
+PrintShapeGraph(droppedTR_encoded)
+PrintShapeGraph(droppedTS_encoded)
+PrintShapeGraph(droppedTR_encoded_sampled)
+
 
 X_train_encoded = droppedTR_encoded.loc[:, droppedTR_encoded.columns != 'isWinning']
 y_train_encoded = droppedTR_encoded.loc[:, droppedTR_encoded.columns == 'isWinning'].values.ravel()
 
+X_train_encoded_sampled = droppedTR_encoded_sampled.loc[:, droppedTR_encoded_sampled.columns != 'isWinning']
+y_train_encoded_sampled = droppedTR_encoded_sampled.loc[:, droppedTR_encoded_sampled.columns == 'isWinning'].values.ravel()
+
 X_test_encoded = droppedTS_encoded.loc[:, droppedTS_encoded.columns != 'isWinning']
 y_test_encoded = droppedTS_encoded.loc[:, droppedTS_encoded.columns == 'isWinning'].values.ravel()
 
-
-PrintShapeGraph(droppedTR_encoded)
-PrintShapeGraph(droppedTS_encoded)
 
 
 print(X_train_encoded)
@@ -89,6 +97,13 @@ RandomForest(X_train_encoded,y_train_encoded,X_test_encoded,y_test_encoded,1)
 BayesComputingClassification(X_train_encoded,y_train_encoded,X_test_encoded,y_test_encoded,1)
 SvmBased(X_train_encoded,y_train_encoded,X_test_encoded,y_test_encoded,1)
 
+print("SAMPLED")
 
+TreeBased(X_train_encoded_sampled,y_train_encoded_sampled,X_test_encoded,y_test_encoded,1)
+RandomForest(X_train_encoded_sampled,y_train_encoded_sampled,X_test_encoded,y_test_encoded,1)
+
+
+BayesComputingClassification(X_train_encoded_sampled,y_train_encoded_sampled,X_test_encoded,y_test_encoded,1)
+SvmBased(X_train_encoded_sampled,y_train_encoded_sampled,X_test_encoded,y_test_encoded,1)
 
 #sample

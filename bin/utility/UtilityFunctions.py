@@ -300,7 +300,7 @@ def SvmBased(X_train,y_train,X_test,y_test,activeEncoded):
 
     print("SVM RBF Report")
     print(classification_report(y_test, predictions, target_names=classesMetrics))
-    #PlotTrainErrors(X_train,y_train,clf_rbf,"SVM RBF",activeEncoded)
+    PlotTrainErrors(X_train,y_train,clf_rbf,"SVM RBF",activeEncoded)
 
     print("Class weights")
     print(clf_rbf.class_weight_)
