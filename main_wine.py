@@ -39,6 +39,7 @@ import numpy as np
 from sklearn.feature_selection import SequentialFeatureSelector,SelectKBest,chi2
 from scipy.stats import zscore
 from sklearn.decomposition import PCA
+import plotly.express as px
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression,LogisticRegression,RidgeCV
 from sklearn.metrics import r2_score,mean_squared_error,mean_absolute_error
@@ -167,13 +168,27 @@ def makeDataframeResult(y_train,y_test,model,y_predective_linear,X_train):
 
     return fit_results,test_pred_results
 
-def ApplyPCA(X_train):
-    pca = PCA(n_components = 0.90) 
-    trasformedDf = pca.fit_transform(X_train)
+def ApplyPCA(data):
+    #pca = PCA(n_components = 0.90) 
+    pca = PCA(n_components = 2) 
+    trasformedDf = pca.fit_transform(data)
 
     print("cumsum variance pca")
-    print(pca.explained_variance_ratio_.cumsum())
+    #7 features explain 90% variance
+    exp_var_cumul = np.cumsum(pca.explained_variance_ratio_)
+    print(exp_var_cumul)
 
+
+    fig = px.area(
+        x=range(1, exp_var_cumul.shape[0] + 1),
+        y=exp_var_cumul,
+        labels={"x": "# Components", "y": "Explained Variance"}
+    )
+
+    fig.show()
+    
+    
+    plt.cla()
 
     PC_values = np.arange(pca.n_components_)+1
     plt.plot(PC_values, pca.explained_variance_ratio_, 'o-', linewidth=2, color='blue')
@@ -182,7 +197,45 @@ def ApplyPCA(X_train):
     plt.ylabel('Variance Explained')
     plt.show()
 
-    return trasformedDf
+    return pca,trasformedDf
+
+
+
+def loadingPCA(pca,pca_dataframe,noLabel,originalDf):
+
+
+    plt.cla()
+    plt.close()
+    features = list(noLabel.columns.values)
+
+    print(features)
+
+    loadings = pca.components_.T * np.sqrt(pca.explained_variance_)
+    print(loadings)
+    fig = px.scatter(pca_dataframe, x=0, y=1, color=originalDf['wineLabel'])
+
+    for i, feature in enumerate(features):
+        fig.add_annotation(
+            ax=0, ay=0,
+            axref="x", ayref="y",
+            x=loadings[i, 0],
+            y=loadings[i, 1],
+            showarrow=True,
+            arrowsize=2,
+            arrowhead=2,
+            xanchor="right",
+            yanchor="top"
+        )
+        fig.add_annotation(
+            x=loadings[i, 0],
+            y=loadings[i, 1],
+            ax=0, ay=0,
+            xanchor="center",
+            yanchor="bottom",
+            text=feature,
+            yshift=5,
+        )
+    fig.show()
 
 print(os.getcwd())
 
@@ -372,8 +425,11 @@ plotTrainTestError(fit_results,test_pred_results)
 
 print("PCA ANALYSIS")
 
-pca_dataframe = ApplyPCA(X_train)
+X_train_noLabel = X_train_scored.drop("wineLabel",axis=1)
 
-print(pca_dataframe)
+pcaModel,pca_dataframe = ApplyPCA(X_train_noLabel)
 
-#biplot
+loadingPCA(pcaModel,pca_dataframe,X_train_noLabel,X_train_scored)
+
+print("EXIT...")
+
