@@ -169,6 +169,27 @@ def OversampleDataset(dataset,target):
 
     return mergedDf
 
+def OversampleDatasetBinary(dataset,target):
+
+    y_train = dataset['isWinning']
+    X_train = dataset.loc[:, dataset.columns != 'isWinning']
+
+    print("OVERSAMPLING")
+    
+    #oversample = over_sampling.RandomOverSampler(sampling_strategy="minority")
+    dictSamples= { 1: target }
+    oversample = over_sampling.RandomOverSampler(sampling_strategy=dictSamples)
+    
+    X_over, y_over = oversample.fit_resample(X_train, y_train)
+
+
+    print(X_over.shape)
+
+    mergedDf = pd.concat([X_over, y_over], axis=1)
+    #print(mergedDf)
+
+    return mergedDf
+
 def swapFirst(x):
     return 'R'+x[1:]
 
@@ -259,36 +280,60 @@ if __name__ == "__main__":
     #fare in modo che se c'è un false esce
     print("### TRAINING ###")
     trainingDataset = ReadDataset("./bin/resources/poker-hand-training-true.data")
+
+
     testingDataset = ReadDataset("./bin/resources/poker-hand-testing.data")
 
     hand = [Card.new("Th")]
     Card.print_pretty_cards(hand)
 
     cardsDF = transformHands(trainingDataset)
+    cardsDF_TS = transformHands(testingDataset)
     print(cardsDF)
 
     evaluator = Evaluator()
 
     #not trashold winning score
 
-    nWS = 4000
+    nWS = 1500
     #Hand strength is valued on a scale of 1 to 7462, where 1 is a Royal Flush and 7462 is unsuited 7-5-4-3-2, as there are only 7642 distinctly ranked hands in poker.
     scoreTR = calculateStrenght(cardsDF,evaluator,trainingDataset,nWS)
+    scoreTS = calculateStrenght(cardsDF_TS,evaluator,testingDataset,nWS)
 
     print(scoreTR)
     print(scoreTR.shape)
 
+    print(scoreTS)
+    print(scoreTS.shape)
+
+    target = 3000
+    oversampledDf_dropped = OversampleDatasetBinary(scoreTR,target)
+
+    print(oversampledDf_dropped)
+    print(oversampledDf_dropped.shape)
+    
+    exit()
+
+    # define oversampling strategy
+    
+
     #check to consider equality card, different score
     print(scoreTR[scoreTR.G == 7])
-
+    print(scoreTR[scoreTR.G == 3])
+    print(scoreTR[scoreTR.G == 2])
 
     
 
     print("DROPPING...")
     partialTR = CreatePartialTR(scoreTR)
-    print(partialTR)
+    partialTS = CreatePartialTR(scoreTS)
+
+
+    print(partialTR.shape)
+    print(partialTS.shape)
 
     training_encoded__Df_dropped = ApplyTrasformation(partialTR,"training-dropped")
+    testing_encoded__Df_dropped = ApplyTrasformation(partialTS,"testing-dropped")
     print(training_encoded__Df_dropped)
 
     #training_encodedDf = ApplyTrasformation(trainingDataset,"training")

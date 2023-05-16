@@ -6,155 +6,26 @@ from matplotlib import pyplot as plt
 from math import sqrt,pi,exp
 import seaborn as sns
 from scipy.stats import zscore
-from sklearn.naive_bayes import ComplementNB,MultinomialNB
-from sklearn.tree import DecisionTreeClassifier,plot_tree
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.svm import SVC
-from sklearn.metrics import accuracy_score,confusion_matrix
 import pickle
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import classification_report
-from utility.UtilityFunctions import plot_confusion_matrix,PlotTrainErrors
-
-
 from utility.UtilityFunctions import ReadDataset
 
-TREE = "TREE"
-SVM_RBF = "SVM_RBF"
-BAYES = "BAYES"
 
-classesMetrics=['0','1','2','3','4','5','6','7','8','9']
+from utility.UtilityFunctions import TreeBased,RandomForest
+
+
+#TREE = "TREE"
+#SVM_RBF = "SVM_RBF"
+#BAYES = "BAYES"
+
+
 
 
 #try it: https://scikit-learn.org/stable/modules/classes.html#module-sklearn.multiclass
 
 
 
-#bayes classification
-def BayesComputingClassification(X_train,y_train,X_test,y_test,activeEncoded):
 
-
-    #https://scikit-learn.org/stable/modules/naive_bayes.html
-    print("\n\n========\n\n")
-    print(BAYES+" CLASSIFICATION")
-    clf = MultinomialNB()
-    clf.fit(X_train, y_train)
-
-    predictions = clf.predict(X_test)
-    print("NAIVE BAYES Complement Accuracy",accuracy_score(y_test, predictions))
-
-    classes=np.unique(y_test)
-    cm = confusion_matrix(y_test, predictions, labels=clf.classes_)
-    plt.close()
-
-    plot_confusion_matrix(cm,classes,BAYES,activeEncoded)
-
-    print("BAYES report classification")
-    print(classification_report(y_test, predictions, target_names=classesMetrics,zero_division=1))
-
-    print("Plotting train error bayes....")
-    PlotTrainErrors(X_train,y_train,clf,BAYES,activeEncoded)
-
-############################################################################
-
-#tree classification
-def TreeBased (X_train,y_train,X_test,y_test,activeEncoded):
-    print("\n\n========\n\n")
-    print(TREE+": classification")
-
-    #try it https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html
-    clf = DecisionTreeClassifier(criterion='gini',max_depth=6,class_weight='balanced')
-    clf = clf.fit(X_train,y_train)
-
-    predictions = clf.predict(X_test)
-    print(TREE+":ACC",accuracy_score(y_test, predictions))
-    classes=np.unique(y_test)
-
-    plt.close()
-    cm = confusion_matrix(y_test, predictions, labels=clf.classes_)
-    plot_confusion_matrix(cm,classes,"TREE",activeEncoded)
-
-    print("TREE Metric")
-    print(classification_report(y_test, predictions, target_names=classesMetrics))
-    PlotTrainErrors(X_train,y_train,clf,"TREE",activeEncoded)
-
-    #Plotting tree
-    plt.figure(figsize=(12,12))
-    plot_tree(clf, fontsize=6)
-    plt.savefig('./Images/treePlot.png', dpi=100)
-
-
-def RandomForest(X_train,y_train,X_test,y_test,activeEncoded):
-    clf = RandomForestClassifier(max_depth=None, random_state=0,n_estimators=10000,min_samples_leaf=3,min_samples_split=2,max_features='sqrt')
-    clf = clf.fit(X_train,y_train)
-
-    predictions = clf.predict(X_test)
-    print(TREE+":ACC",accuracy_score(y_test, predictions))
-    classes=np.unique(y_test)
-
-    plt.close()
-    cm = confusion_matrix(y_test, predictions, labels=clf.classes_)
-    plot_confusion_matrix(cm,classes,"TREE",activeEncoded)
-
-
-
-#######################################################################################
-#svm classification
-def SvmBased(X_train,y_train,X_test,y_test,activeEncoded):
-    print("\n\n========\n\n")
-    print("SVM classification linear")
-    #https://scikit-learn.org/stable/modules/generated/sklearn.svm.SVC.html#sklearn.svm.SVC
-
-    clf_linear = SVC(kernel= 'linear', C=0.1,class_weight='balanced')
-    clf_linear.fit(X_train, y_train)
-
-    predictions = clf_linear.predict(X_test)
-    print("SVM accuracy LINEAR",accuracy_score(y_test, predictions))
-    classes=np.unique(y_test)
-
-    plt.close()
-    cm = confusion_matrix(y_test, predictions, labels=clf_linear.classes_)
-    plot_confusion_matrix(cm,classes,"SVM_linear",activeEncoded)
-
-    print("SVM linear REPORT")
-    print(classification_report(y_test, predictions, target_names=classesMetrics))
-
-    print("------------")
-    #----------------------------------------------------------------------------------------
-    print("SVM classification poly")
-    clf_poly = SVC(kernel= 'poly', C=0.1,class_weight='balanced')
-    clf_poly.fit(X_train, y_train)
-    predictions = clf_poly.predict(X_test)
-    print("SVM POLY accuracy",accuracy_score(y_test, predictions))
-    classes=np.unique(y_test)
-
-    plt.close()
-    cm = confusion_matrix(y_test, predictions, labels=clf_poly.classes_)
-    plot_confusion_matrix(cm,classes,"SVM_poly",activeEncoded)
-
-    print("SVM poly Report")
-    print(classification_report(y_test, predictions, target_names=classesMetrics))
-
-    print("------------")
-    #----------------------------------------------------------------------------------------
-    print("SVM classification rbf")
-    clf_rbf = SVC(kernel= 'rbf', C=0.1,class_weight='balanced')
-    clf_rbf.fit(X_train, y_train)
-    predictions = clf_rbf.predict(X_test)
-    
-    print("SVM rbf accuracy",accuracy_score(y_test, predictions))
-    classes=np.unique(y_test)
-
-    plt.close()
-    cm = confusion_matrix(y_test, predictions, labels=clf_rbf.classes_)
-    plot_confusion_matrix(cm,classes,"SVM_rbf",activeEncoded)
-
-    print("SVM RBF Report")
-    print(classification_report(y_test, predictions, target_names=classesMetrics))
-    #PlotTrainErrors(X_train,y_train,clf_rbf,"SVM RBF",activeEncoded)
-
-    print("Class weights")
-    print(clf_rbf.class_weight_)
 
 
 

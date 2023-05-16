@@ -5,7 +5,11 @@ import pandas as pd
 import seaborn as sn
 from sklearn.decomposition import PCA
 import matplotlib.cm as cm
-from sklearn.tree import DecisionTreeClassifier
+
+
+
+from bin.utility.UtilityFunctions import TreeBased,RandomForest,BayesComputingClassification,SvmBased
+
 
 """
 POKER has 52 card, 13 carte per seme.
@@ -28,9 +32,63 @@ Si tratta solo di "CLASSIFICARE" non di metter ein piedi un algoritmo che date t
 Spero sia utile
 
 """
+def PrintShapeGraph(dataset):
+    print("SIZE OF : (Records,Features)")
+    print(dataset.shape)
 
+    g_classes = len(set(dataset['isWinning'].values))  # count distinct values label
+    poker_hands = list(set(dataset['isWinning'].values))
 
-with open('./bin/resources/training-sampled-dropped_encodedDf.pickle', 'rb') as data:
+    print(g_classes)
+    cls = {}
+    for i in range(g_classes):
+        cls[i] = len(dataset[dataset.isWinning==i])
+    print(cls)
+
+    #classes are unbalanced
+
+    #Plot histogram
+
+    plt.bar(poker_hands, [cls[i] for i in poker_hands], align='center')
+    plt.xlabel('classes id')
+    plt.ylabel('Number of instances')
+    plt.title("Classes of Dataset")
+    plt.show()
+
+with open('./bin/resources/training-dropped_encodedDf.pickle', 'rb') as data:
         droppedTR_encoded = pickle.load(data)
 
+with open('./bin/resources/testing-dropped_encodedDf.pickle', 'rb') as data:
+        droppedTS_encoded = pickle.load(data)
+
+
+
 print(droppedTR_encoded)
+
+droppedTR_encoded = droppedTR_encoded.drop('label', axis=1)
+droppedTS_encoded = droppedTS_encoded.drop('label', axis=1)
+
+X_train_encoded = droppedTR_encoded.loc[:, droppedTR_encoded.columns != 'isWinning']
+y_train_encoded = droppedTR_encoded.loc[:, droppedTR_encoded.columns == 'isWinning'].values.ravel()
+
+X_test_encoded = droppedTS_encoded.loc[:, droppedTS_encoded.columns != 'isWinning']
+y_test_encoded = droppedTS_encoded.loc[:, droppedTS_encoded.columns == 'isWinning'].values.ravel()
+
+
+PrintShapeGraph(droppedTR_encoded)
+PrintShapeGraph(droppedTS_encoded)
+
+
+print(X_train_encoded)
+print(X_test_encoded)
+
+TreeBased(X_train_encoded,y_train_encoded,X_test_encoded,y_test_encoded,1)
+RandomForest(X_train_encoded,y_train_encoded,X_test_encoded,y_test_encoded,1)
+
+
+BayesComputingClassification(X_train_encoded,y_train_encoded,X_test_encoded,y_test_encoded,1)
+SvmBased(X_train_encoded,y_train_encoded,X_test_encoded,y_test_encoded,1)
+
+
+
+#sample
