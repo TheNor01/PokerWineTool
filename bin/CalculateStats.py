@@ -48,6 +48,13 @@ if __name__ == "__main__":
     trainingSuit= trainingDataset[["S1", "S2", "S3", "S4", "S5","G"]]
     trainingRank = trainingDataset[["R1", "R2", "R3", "R4","R5","G"]]
 
+    fig, ax = plt.subplots(figsize=(10, 6))
+    pearsonDf = trainingDataset.corr().abs()
+    sns.heatmap(pearsonDf, ax=ax, annot=True)
+    plt.title("pearson CORR")
+    plt.show()
+
+    exit()
     
     #We could use describe, but it is meaningless?!
     #print(trainingSuit.describe().astype(int))

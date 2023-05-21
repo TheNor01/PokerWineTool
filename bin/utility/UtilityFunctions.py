@@ -11,7 +11,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import classification_report
 from sklearn.svm import SVC
 from sklearn.metrics import accuracy_score,confusion_matrix
-from sklearn.naive_bayes import ComplementNB,MultinomialNB
+from sklearn.naive_bayes import ComplementNB,MultinomialNB,GaussianNB
 
 #classesMetrics=['0','1','2','3','4','5','6','7','8','9']
 #classesMetrics=['0','1']
@@ -179,7 +179,7 @@ def TreeBased (X_train,y_train,X_test,y_test,activeEncoded):
     print(TREE+": classification")
 
     #try it https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html
-    clf = DecisionTreeClassifier(criterion='gini',max_depth=6,class_weight='balanced')
+    clf = DecisionTreeClassifier(criterion='entropy',max_depth=5,class_weight='balanced')
     clf = clf.fit(X_train,y_train)
 
     predictions = clf.predict(X_test)
@@ -218,11 +218,10 @@ def RandomForest(X_train,y_train,X_test,y_test,activeEncoded):
 #bayes classification
 def BayesComputingClassification(X_train,y_train,X_test,y_test,activeEncoded):
 
-
     #https://scikit-learn.org/stable/modules/naive_bayes.html
     print("\n\n========\n\n")
     print(BAYES+" CLASSIFICATION")
-    clf = MultinomialNB()
+    clf = ComplementNB()
     clf.fit(X_train, y_train)
 
     predictions = clf.predict(X_test)
@@ -252,7 +251,7 @@ def SvmBased(X_train,y_train,X_test,y_test,activeEncoded):
     print("SVM classification linear")
     #https://scikit-learn.org/stable/modules/generated/sklearn.svm.SVC.html#sklearn.svm.SVC
 
-    clf_linear = SVC(kernel= 'linear', C=0.1,class_weight='balanced')
+    clf_linear = SVC(kernel= 'linear', C=0.01,class_weight='balanced')
     clf_linear.fit(X_train, y_train)
 
     predictions = clf_linear.predict(X_test)
@@ -271,7 +270,7 @@ def SvmBased(X_train,y_train,X_test,y_test,activeEncoded):
     print("------------")
     #----------------------------------------------------------------------------------------
     print("SVM classification poly")
-    clf_poly = SVC(kernel= 'poly', C=0.1,class_weight='balanced')
+    clf_poly = SVC(kernel= 'poly', C=0.01,class_weight='balanced',degree=5)
     clf_poly.fit(X_train, y_train)
     predictions = clf_poly.predict(X_test)
     print("SVM POLY accuracy",accuracy_score(y_test, predictions))
@@ -287,7 +286,7 @@ def SvmBased(X_train,y_train,X_test,y_test,activeEncoded):
     print("------------")
     #----------------------------------------------------------------------------------------
     print("SVM classification rbf")
-    clf_rbf = SVC(kernel= 'rbf', C=0.1,class_weight='balanced')
+    clf_rbf = SVC(kernel= 'rbf', C=0.01,class_weight='balanced',gamma='auto')
     clf_rbf.fit(X_train, y_train)
     predictions = clf_rbf.predict(X_test)
     

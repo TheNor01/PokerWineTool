@@ -54,10 +54,6 @@ def CheckIntegrityDataset(dataset):
     checkNan = dataset.isnull().values.any() #returns true if there is one true at least
     print(checkNan)
 
-#     print("Checking range goal (0,9) column")
-#     checkRange2 = dataset["quality"].between(0,10).values.any()
-#     print(checkRange2)
-
     print("Checking duplicates...")
     dataset.drop_duplicates(subset=None,inplace=True)
 
@@ -77,6 +73,7 @@ def PrintShapeGraph(dataset):
 
     #Plot histogram, change scale
     plt.bar(wine_label, [cls[i] for i in wine_label], align='center')
+    plt.xticks([0,1])
     plt.xlabel('classes id')
     plt.ylabel('Number of instances')
     plt.title("Classes of Dataset")
@@ -84,7 +81,7 @@ def PrintShapeGraph(dataset):
 
 
 def calculateStatsModel(y_test,y_predective_linear):
-    score = r2_score(y_test,y_predective_linear)*100
+    score = r2_score(y_test,y_predective_linear)
     print("R2 Score original",score)
 
     print("R2 ADJ with p regressor")
@@ -146,9 +143,8 @@ def plotResiduals(y_test,y_predective_linear):
 
 def DoBackWardAutomatic(X_train,y_train):
     feature_names = np.array(X_train.columns)
-    backWard_model_linear = SequentialFeatureSelector(regressorLinear, n_features_to_select=7,direction='backward').fit(X_train, y_train)
+    backWard_model_linear = SequentialFeatureSelector(regressorLinear, n_features_to_select=2,direction='backward').fit(X_train, y_train)
     print("Features selected by backward sequential selection: "f"{feature_names[backWard_model_linear.get_support()]}")
-    
     
     return feature_names[backWard_model_linear.get_support()]
     #X_new = SelectKBest(chi2, k=5).fit_transform(X, y)
@@ -169,8 +165,8 @@ def makeDataframeResult(y_train,y_test,model,y_predective_linear,X_train):
     return fit_results,test_pred_results
 
 def ApplyPCA(data):
-    #pca = PCA(n_components = 0.90) 
-    pca = PCA(n_components = 2) 
+    pca = PCA(n_components = 0.90) 
+    #pca = PCA(n_components = 2) 
     trasformedDf = pca.fit_transform(data)
 
     print("cumsum variance pca")
@@ -185,17 +181,17 @@ def ApplyPCA(data):
         labels={"x": "# Components", "y": "Explained Variance"}
     )
 
-    fig.show()
+    #fig.show()
     
     
-    plt.cla()
+    #plt.cla()
 
     PC_values = np.arange(pca.n_components_)+1
     plt.plot(PC_values, pca.explained_variance_ratio_, 'o-', linewidth=2, color='blue')
     plt.title('Scree Plot')
     plt.xlabel('Principal Component')
     plt.ylabel('Variance Explained')
-    plt.show()
+    #plt.show()
 
     return pca,trasformedDf
 
@@ -235,10 +231,11 @@ def loadingPCA(pca,pca_dataframe,noLabel,originalDf):
             text=feature,
             yshift=5,
         )
-    fig.show()
+    #fig.show()
 
 print(os.getcwd())
 
+#fare main
 
 #read red wines
 dataWineRed= pd.read_csv("./bin/resources/wine/winequality-red.csv",sep=';')
@@ -246,6 +243,7 @@ dataWineRed= pd.read_csv("./bin/resources/wine/winequality-red.csv",sep=';')
 print(dataWineRed)
 print(dataWineRed.columns)
 print(dataWineRed.shape)
+
 
 dataWineRed["wineLabel"] = 0
 
@@ -264,13 +262,18 @@ print(unionWine.shape)
 unionWine.drop('quality', axis=1, inplace=True)
 
 
-print(unionWine)
-
 CheckIntegrityDataset(unionWine)
 PrintShapeGraph(unionWine)
 
 #we can see a different range min-max for every column, in particular alcohol
-print(unionWine.describe())
+##print(dataWineRed.describe())
+print(dataWineWhite.describe())
+#print(unionWine.describe())
+
+
+
+#unionWine.boxplot(column=['residual sugar'], return_type='axes')
+#plt.show()
 
 
 #let's zscore, we can use it cause 75%percentile is near to mean value. also STD
@@ -283,32 +286,44 @@ for col in unionWine.columns:
                 X_train_scored[str(col)] = zscore(unionWine[col])
 
 
-print(X_train_scored)
+#print(X_train_scored)
 print(X_train_scored.describe())
+
+
+
+X_train_scored.boxplot(column=['residual sugar'], return_type='axes')
+#plt.show()
+
+print(X_train_scored[X_train_scored['residual sugar']<=2.00])
+
+X_train_scored = X_train_scored[X_train_scored['residual sugar']<=2.00].copy()
+
+
 
 #check covariance matrice
 #https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.cov.html
 cov_matrix = pd.DataFrame.cov(X_train_scored)
-sn.heatmap(cov_matrix, annot=False,cbar=True, fmt='g')
-plt.title("COVARIANCE MATRIX")
-plt.show()
+#sn.heatmap(cov_matrix, annot=False,cbar=True, fmt='g')
+#plt.title("COVARIANCE MATRIX")
+#plt.show()
 
 
 #Correlation pearson
 fig, ax = plt.subplots(figsize=(10, 6))
 
-
-pearsonDf = unionWine.corr().abs()
+pearsonDf = X_train_scored.corr().abs()
 sn.heatmap(pearsonDf, ax=ax, annot=True)
-plt.title("pearson CORR")
+#plt.title("pearson CORR")
 #plt.show()
 
 
-kendallDf = unionWine.corr(method='kendall').abs()
-fig, ax = plt.subplots(figsize=(10, 6))
+
+kendallDf = X_train_scored.corr(method='kendall').abs()
+#fig, ax = plt.subplots(figsize=(10, 6))
 sn.heatmap(kendallDf, ax=ax, annot=True)
-plt.title("kendall CORR")
+#plt.title("kendall CORR")
 #plt.show()
+
 
 s = pearsonDf.unstack()
 so = s.sort_values(kind="quicksort")
@@ -316,29 +331,25 @@ so = s.sort_values(kind="quicksort")
 s1 = kendallDf.unstack()
 so1 = s1.sort_values(kind="quicksort")
 
+
+print("-----PEARSON------")
 print(so[(so >= 0.50) & (so < 1.00)])
-print("-----------")
+print("-----KENDALL------")
 print(so1[(so1 >= 0.50) & (so1 < 1.00)])
 
-colors = ['#E69F00', '#56B4E9']
-names= ['red','white']
-#plot different chart for two label
-#for col in unionWine.columns:
+plt.cla()
+plt.clf()
+plt.close()
 
 
-"""
-for s in unionWine.columns:
-# plotting both distibutions on the same figure
-        sn.scatterplot(data=unionWine, x='pH',y=s, hue='wineLabel',alpha=0.5)
-        plt.show()
-"""
+
 
 y_train_scored = X_train_scored.loc[:, X_train_scored.columns == 'wineLabel'].values.ravel()
-
 X_train, X_test, y_train, y_test = train_test_split(X_train_scored, y_train_scored, test_size = 0.2, random_state = 42)
 
 
-print("Y_TRAIN:",y_train)
+PrintShapeGraph(X_test)
+
 
 X_test.drop('wineLabel', axis=1, inplace=True)
 X_train.drop('wineLabel', axis=1, inplace=True)
@@ -348,8 +359,6 @@ X_train.drop('wineLabel', axis=1, inplace=True)
 #print(y_test)
 """
 REGRESSION LINEAR
-
-
 """
 
 #Multivariate LINEAR REGRESSION
@@ -359,6 +368,8 @@ regressorLinear = LinearRegression().fit(X_train,y_train)
 
 y_predective_linear = regressorLinear.predict(X_test)
 
+print("Y_TRAIN:",set(y_train))
+print(set(y_predective_linear))
 
 #Study errors
 
@@ -367,12 +378,17 @@ fit_results,test_pred_results = makeDataframeResult(y_train,y_test,regressorLine
 
 plotTrainTestError(fit_results,test_pred_results)
 
+score = r2_score(y_test,y_predective_linear)
+print("R2 Score original",score)
+
+
 plt.cla()
 
 
 #Calculate residual average, variance
 
 plotResiduals(y_test,y_predective_linear)
+
 
 #Can we do a better score?
 
@@ -381,6 +397,9 @@ plotResiduals(y_test,y_predective_linear)
 #OLS and F distribution
 
 calculateStatsModel(y_test,y_predective_linear)
+
+
+
 
 #FEATURE SELECTION with AIC consideration
 
@@ -398,38 +417,46 @@ regressorLinear_sel = LinearRegression().fit(X_train_selected,y_train)
 print("STATS SELECTED FEATURES MODEL ")
 y_predective_linear = regressorLinear_sel.predict(X_test_selected)
 
-calculateStatsModel(y_test,y_predective_linear)
-plotResiduals(y_test,y_predective_linear)
+#calculateStatsModel(y_test,y_predective_linear)
+#plotResiduals(y_test,y_predective_linear)
 
 fit_results,test_pred_results = makeDataframeResult(y_train,y_test,regressorLinear_sel,y_predective_linear,X_train_selected)
 
-plotTrainTestError(fit_results,test_pred_results)
+#plotTrainTestError(fit_results,test_pred_results)
 
 
-
-print("\n\n LOGISTIC REGRESSION ")
-
+print("\n\nLOGISTIC REGRESSION ")
 #https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegression.html
 logreg = LogisticRegression(dual=False,class_weight='balanced',multi_class='ovr').fit(X_train_selected,y_train)
 
-print("STATS SELECTED FEATURES MODEL ")
+print("STATS SELECTED FEATURES MODEL LOGISTIC ")
 y_predective_log= logreg.predict(X_test_selected)
 
 calculateStatsModel(y_test,y_predective_log)
-plotResiduals(y_test,y_predective_log)
+#plotResiduals(y_test,y_predective_log)
 
 fit_results,test_pred_results = makeDataframeResult(y_train,y_test,logreg,y_predective_log,X_train_selected)
 
-plotTrainTestError(fit_results,test_pred_results)
-
+#plotTrainTestError(fit_results,test_pred_results)
 
 print("PCA ANALYSIS")
 
-X_train_noLabel = X_train_scored.drop("wineLabel",axis=1)
+X_train_noLabel = X_train
+X_test_noLabel = X_test
 
 pcaModel,pca_dataframe = ApplyPCA(X_train_noLabel)
+pcaModel,pca_dataframe_test= ApplyPCA(X_test_noLabel)
 
-loadingPCA(pcaModel,pca_dataframe,X_train_noLabel,X_train_scored)
+print("PCA CLASSIFICATION")
+
+logreg_pca = LogisticRegression(dual=False,class_weight='balanced').fit(pca_dataframe,y_train)
+#logreg_pca = LogisticRegression().fit(pca_dataframe,y_train)
+
+y_predective_log_pca= logreg_pca.predict(pca_dataframe_test)
+calculateStatsModel(y_test,y_predective_log_pca)
+
+
+#loadingPCA(pcaModel,pca_dataframe,X_train_noLabel,X_train_scored)
 
 print("EXIT...")
 

@@ -11,7 +11,7 @@ from sklearn.model_selection import train_test_split
 from utility.UtilityFunctions import ReadDataset
 
 
-from utility.UtilityFunctions import TreeBased,RandomForest
+from utility.UtilityFunctions import TreeBased,RandomForest,BayesComputingClassification
 
 
 #TREE = "TREE"
@@ -101,6 +101,7 @@ if __name__ == "__main__":
 
     TreeBased(X_train_sampled_encoded_dropped,y_train_sampled_encoded_dropped,X_test_encoded_dropped,y_test_encoded_dropped,1)
     RandomForest(X_train_sampled_encoded_dropped,y_train_sampled_encoded_dropped,X_test_encoded_dropped,y_test_encoded_dropped,1)
+    BayesComputingClassification(X_train_sampled_encoded_dropped,y_train_sampled_encoded_dropped,X_test_encoded_dropped,y_test_encoded_dropped,1)
 
     exit()
     #TAKE a percentage

@@ -21,16 +21,16 @@ from treys import Evaluator
 # Rank Numerical: (1-13) (Ace, 2, 3, ... , Queen, King)
 # 1 output Goal: Ordinal (0-9)
 """
-      0: Nothing in hand; not a recognized poker hand 
-      1: One pair; one pair of equal ranks within five cards // coppia
-      2: Two pairs; two pairs of equal ranks within five cards // doppia coppia
-      3: Three of a kind; three equal ranks within five cards //tris
-      4: Straight; five cards, sequentially ranked with no gaps //scala
-      5: Flush; five cards with the same suit //colore
-      6: Full house; pair + different rank three of a kind // Full (tris + coppia)
-      7: Four of a kind; four equal ranks within five cards (poker)
-      8: Straight flush; straight + flush // scala colore
-      9: Royal flush; {Ace, King, Queen, Jack, Ten} + flush // scala reale
+0: Nothing in hand; not a recognized poker hand 
+1: One pair; one pair of equal ranks within five cards // coppia
+2: Two pairs; two pairs of equal ranks within five cards // doppia coppia
+3: Three of a kind; three equal ranks within five cards //tris
+4: Straight; five cards, sequentially ranked with no gaps //scala
+5: Flush; five cards with the same suit //colore
+6: Full house; pair + different rank three of a kind // Full (tris + coppia)
+7: Four of a kind; four equal ranks within five cards (poker)
+8: Straight flush; straight + flush // scala colore
+9: Royal flush; {Ace, King, Queen, Jack, Ten} + flush // scala reale
 
       suit_name = {
         1: 'Cuori',
@@ -253,8 +253,6 @@ def transformHands(trainingDataset):
 
 
 def calculateStrenght(trasformedDf,eval,outputDf,WS):
-
-
     allScore=[]
     isWinning = []
     for index,rows in trasformedDf.iterrows():
@@ -281,33 +279,45 @@ if __name__ == "__main__":
     print("### TRAINING ###")
     trainingDataset = ReadDataset("./bin/resources/poker-hand-training-true.data")
 
+    print(trainingDataset)
+
+    CheckIntegrityDataset(trainingDataset)
+
+    print("Dropping duplicates...")
+    trainingDataset = trainingDataset.drop_duplicates()
+
+    #Info shape training
+    PrintShapeGraph(trainingDataset)
 
     testingDataset = ReadDataset("./bin/resources/poker-hand-testing.data")
+
 
     hand = [Card.new("Th")]
     Card.print_pretty_cards(hand)
 
     cardsDF = transformHands(trainingDataset)
     cardsDF_TS = transformHands(testingDataset)
-    print(cardsDF)
+    #print(cardsDF)
 
     evaluator = Evaluator()
 
     #not trashold winning score
-
-    nWS = 1500
+    nWS = 3000
     #Hand strength is valued on a scale of 1 to 7462, where 1 is a Royal Flush and 7462 is unsuited 7-5-4-3-2, as there are only 7642 distinctly ranked hands in poker.
     scoreTR = calculateStrenght(cardsDF,evaluator,trainingDataset,nWS)
     scoreTS = calculateStrenght(cardsDF_TS,evaluator,testingDataset,nWS)
 
+    print("scoreTr")
     print(scoreTR)
     print(scoreTR.shape)
 
-    print(scoreTS)
-    print(scoreTS.shape)
+    #print(scoreTS)
+    #print(scoreTS.shape)
 
-    target = 10000
+    target = 15000
     oversampledDf_TR = OversampleDatasetBinary(scoreTR,target)
+
+    #PrintShapeGraph(oversampledDf_TR)
 
     print(oversampledDf_TR)
     print(oversampledDf_TR.shape)
@@ -317,23 +327,23 @@ if __name__ == "__main__":
 
     #check to consider equality card, different score
     print(scoreTR[scoreTR.G == 7])
-    print(scoreTR[scoreTR.G == 3])
-    print(scoreTR[scoreTR.G == 2])
+    #print(scoreTR[scoreTR.G == 3])
+    #print(scoreTR[scoreTR.G == 2])
+
 
     
 
     print("DROPPING...")
-    partialTR = CreatePartialTR(scoreTR)
+    #partialTR = CreatePartialTR(scoreTR)
     partialTR_sampled = CreatePartialTR(oversampledDf_TR)
     partialTS = CreatePartialTR(scoreTS)
 
 
 
+    
+    #print(partialTS.shape)
 
-    print(partialTR.shape)
-    print(partialTS.shape)
-
-    training_encoded__Df_dropped = ApplyTrasformation(partialTR,"training-dropped")
+    #training_encoded__Df_dropped = ApplyTrasformation(partialTR,"training-dropped")
     testing_encoded__Df_dropped = ApplyTrasformation(partialTS,"testing-dropped")
     training_encoded_sampled_Df_dropped = ApplyTrasformation(partialTR_sampled,"training-sample-dropped")
 
@@ -345,9 +355,6 @@ if __name__ == "__main__":
 
     print("ENCODING TRAINING")
 
-
-
-    
     partialTS = CreatePartialTR(testingDataset)
 
 
@@ -361,16 +368,7 @@ if __name__ == "__main__":
 
 
 
-    CheckIntegrityDataset(trainingDataset)
-
-    print(trainingDataset)
-
-    print("Dropping duplicates...")
-    trainingDataset = trainingDataset.drop_duplicates()
-
-
-    #Info shape training
-    PrintShapeGraph(trainingDataset)
+    
 
 
     #Loading testing
