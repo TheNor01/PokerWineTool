@@ -143,7 +143,7 @@ def plotResiduals(y_test,y_predective_linear):
 
 def DoBackWardAutomatic(X_train,y_train):
     feature_names = np.array(X_train.columns)
-    backWard_model_linear = SequentialFeatureSelector(regressorLinear, n_features_to_select=2,direction='backward').fit(X_train, y_train)
+    backWard_model_linear = SequentialFeatureSelector(regressorLinear, n_features_to_select=5,direction='backward').fit(X_train, y_train)
     print("Features selected by backward sequential selection: "f"{feature_names[backWard_model_linear.get_support()]}")
     
     return feature_names[backWard_model_linear.get_support()]
@@ -445,7 +445,7 @@ X_train_noLabel = X_train
 X_test_noLabel = X_test
 
 pcaModel,pca_dataframe = ApplyPCA(X_train_noLabel)
-pcaModel,pca_dataframe_test= ApplyPCA(X_test_noLabel)
+pca_dataframe_test= pcaModel.transform(X_test_noLabel)
 
 print("PCA CLASSIFICATION")
 
