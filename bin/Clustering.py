@@ -17,6 +17,32 @@ from utility.UtilityFunctions import plot_confusion_matrix,PlotTrainErrors
 import warnings
 warnings.filterwarnings("ignore")
 
+
+def PrintShapeGraph(dataset):
+    print("SIZE OF : (Records,Features)")
+    print(dataset.shape)
+
+    g_classes = len(set(dataset['label'].values))  # count distinct values label
+    poker_hands = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+    #poker_hands = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+
+
+    print(g_classes)
+    cls = {}
+    for i in range(g_classes):
+        cls[i] = len(dataset[dataset.label==i])
+    print(cls)
+
+    #classes are unbalanced
+
+    #Plot histogram
+
+    plt.bar(poker_hands, [cls[i] for i in poker_hands], align='center')
+    plt.xlabel('classes id')
+    plt.ylabel('Number of instances')
+    plt.title("Classes of Dataset")
+    plt.show()
+
 def Kmeans(X_train,X_test,y_test,activeEncoded):
     #We presume there are 11 K points (groups), equals to label
 
@@ -63,7 +89,7 @@ def Kmeans(X_train,X_test,y_test,activeEncoded):
     kmedoids = KMedoids(n_clusters=clusterNumbers).fit(X_train)
     predictions=kmedoids.predict(X_test)
 
-    classesMetrics=['0','1','2','3','4','5','6','7','8','9']
+    classesMetrics=['1','2','3','4','5','6','7','8','9']
 
     cm = confusion_matrix(y_test, predictions, labels=classes)
     plot_confusion_matrix(cm,classes,"KMETOIDS",activeEncoded)
@@ -74,14 +100,17 @@ def ClusteringGerc(X_train,X_test,y_test,activeEncoded):
 
     clusterFromDendrogam = 11
     classes=np.unique(y_test)
-    clustering_agglomerate = DBSCAN(clusterFromDendrogam).fit(X_train)
+
+    print(classes)
+
+    clustering_agglomerate = AgglomerativeClustering(clusterFromDendrogam).fit(X_train)
     predictions=clustering_agglomerate.fit_predict(X_test)
 
-    classesMetrics=['0','1','2','3','4','5','6','7','8','9']
+    classesMetrics=[1,2,3,4,5,6,7,8,9]
 
     cm = confusion_matrix(y_test, predictions, labels=classes)
     plot_confusion_matrix(cm,classes,"Agglomerative",activeEncoded)
-    print(classification_report(y_test, predictions, target_names=classesMetrics))
+    #print(classification_report(y_test, predictions, target_names=classesMetrics))
 
 
 def ApplyPCA(X_train):
@@ -112,16 +141,21 @@ if __name__ == "__main__":
 
     print("CLUSTERING")
 
-    trainingDataset = ReadDataset("./bin/resources/poker-hand-training-true.data")
-    testingDataset = ReadDataset("./bin/resources/poker-hand-testing.data")
+    #trainingDataset = ReadDataset("./bin/resources/poker-hand-training-true.data")
+    #testingDataset = ReadDataset("./bin/resources/poker-hand-testing.data")
 
+    
 
-
-    with open('./bin/resources/training_encodedDf.pickle', 'rb') as data:
-        trainingDataset_encoded = pickle.load(data)
+    with open('./bin/resources/training-sampled_lower_encodedDf.pickle', 'rb') as data:
+        trainingDataset_encoded = pickle.load(data).astype(int)
 
     with open('./bin/resources/testing_encodedDf.pickle', 'rb') as data:
-        testingDataset_encoded = pickle.load(data)
+        testingDataset_encoded = pickle.load(data).astype(int)
+
+
+
+
+    PrintShapeGraph(trainingDataset_encoded)
 
 
     
@@ -135,23 +169,32 @@ if __name__ == "__main__":
     #Cluster gerarchico?
 
 
-    
-   
-    X_train_encoded = trainingDataset_encoded.loc[:, trainingDataset_encoded.columns != 'label']
+    #remove 0 label rows
+    X_train_encoded =  trainingDataset_encoded[(trainingDataset_encoded.label != 0)].copy()
+
+    print(X_train_encoded.shape)
+
+    y_train_df  =  X_train_encoded
+
+    X_train_encoded = X_train_encoded.loc[:, X_train_encoded.columns != 'label']
     X_train_encoded = X_train_encoded.drop('isWinning', axis=1)
-    y_train_encoded = trainingDataset_encoded.loc[:, trainingDataset_encoded.columns == 'label'].values.ravel()
-
-
-    print(testingDataset_encoded[testingDataset_encoded.label == 9])
+    y_train_encoded = y_train_df.loc[:, y_train_df.columns == 'label'].values.ravel()
 
 
 
-    X_test_encoded = testingDataset_encoded.loc[:, testingDataset_encoded.columns != 'label']
-    y_test_encoded = testingDataset_encoded.loc[:, testingDataset_encoded.columns == 'label'].values.ravel()
+    #remove 0 label rows
+    X_test_encoded =  trainingDataset_encoded[(trainingDataset_encoded.label != 0)].copy()
+
+    y_test_df = X_test_encoded
+
+    X_test_encoded = X_test_encoded.loc[:, X_test_encoded.columns != 'label']
+    y_test_encoded = y_test_df.loc[:, y_test_df.columns == 'label'].values.ravel()
 
 
 
     
+
+    """
 
     #pca unicode
     print("PCA ENCODED")
@@ -162,7 +205,6 @@ if __name__ == "__main__":
     print(X_test_encoded_pca.shape)
 
     
-    """
     components = X_test_encoded_pca.shape[1]
     #print(components)
     newColumns = ['P'+str(item) for item in range(1, components+1)]
@@ -173,8 +215,8 @@ if __name__ == "__main__":
     #Kmeans(X_train_encoded_pca,X_test_encoded_pca,y_test_encoded,1)
 
 
-    plt.figure(figsize =(8, 8))
-    plt.title('Visualising the data')
+    #plt.figure(figsize =(8, 8))
+    #plt.title('Visualising the data')
     clusterFromDendrogam = 11
     #plt.show()
 
@@ -182,15 +224,17 @@ if __name__ == "__main__":
     plt.cla()
     plt.close()
 
+
     
-    ClusteringGerc(trainingDataset,testingDataset,y_test_encoded,1)
+    ClusteringGerc(X_train_encoded,X_test_encoded,y_test_encoded,1)
+
+    exit()
 
 
 
     #clustering gerarchico comparison, anche indice di Dunn
     
 
-    exit()
 
     plt.close()
     #EVALUATE CLUSTERING

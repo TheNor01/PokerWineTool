@@ -314,13 +314,15 @@ if __name__ == "__main__":
     #print(scoreTS)
     #print(scoreTS.shape)
 
-    target = 15000
-    oversampledDf_TR = OversampleDatasetBinary(scoreTR,target)
+    target = 3000
+    #oversampledDf_TR = OversampleDatasetBinary(scoreTR,target)
+    oversampledDf_TR_lower = OversampleDataset(scoreTR,target)
+    
 
     #PrintShapeGraph(oversampledDf_TR)
 
-    print(oversampledDf_TR)
-    print(oversampledDf_TR.shape)
+    #print(oversampledDf_TR)
+    #print(oversampledDf_TR.shape)
     
     # define oversampling strategy
     
@@ -335,8 +337,8 @@ if __name__ == "__main__":
 
     print("DROPPING...")
     #partialTR = CreatePartialTR(scoreTR)
-    partialTR_sampled = CreatePartialTR(oversampledDf_TR)
-    partialTS = CreatePartialTR(scoreTS)
+    #partialTR_sampled = CreatePartialTR(oversampledDf_TR)
+    #partialTS = CreatePartialTR(scoreTS)
 
 
 
@@ -344,15 +346,13 @@ if __name__ == "__main__":
     #print(partialTS.shape)
 
     #training_encoded__Df_dropped = ApplyTrasformation(partialTR,"training-dropped")
-    testing_encoded__Df_dropped = ApplyTrasformation(partialTS,"testing-dropped")
-    training_encoded_sampled_Df_dropped = ApplyTrasformation(partialTR_sampled,"training-sample-dropped")
+    training_encoded__Df_sample_lower= ApplyTrasformation(oversampledDf_TR_lower,"training-sampled_lower")
+    #testing_encoded__Df_dropped = ApplyTrasformation(partialTS,"testing-dropped")
+    #training_encoded_sampled_Df_dropped = ApplyTrasformation(partialTR_sampled,"training-sample-dropped")
 
     #training_encodedDf = ApplyTrasformation(trainingDataset,"training")
 
     exit()
-
-
-
     print("ENCODING TRAINING")
 
     partialTS = CreatePartialTR(testingDataset)

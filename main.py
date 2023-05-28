@@ -24,7 +24,7 @@ from sklearn.tree import DecisionTreeClassifier
 
 
 
-with open('./bin/resources/training-sampled-dropped_encodedDf.pickle', 'rb') as data:
+with open('./bin/resources/training-sampled-lower_encodedDf.pickle', 'rb') as data:
         droppedTR_encoded = pickle.load(data)
 
 
@@ -35,16 +35,7 @@ X_train_sampled_encoded = droppedTR_encoded.loc[:, droppedTR_encoded.columns != 
 y_train_sampled_encoded = droppedTR_encoded.loc[:, droppedTR_encoded.columns == 'label'].values.ravel()
 
 
-clf = DecisionTreeClassifier(criterion='gini',max_depth=6,class_weight='balanced')
-clf = clf.fit(X_train_sampled_encoded,y_train_sampled_encoded)
 
-predictions = clf.predict(X_test)
-print(TREE+":ACC",accuracy_score(y_test, predictions))
-classes=np.unique(y_test)
-
-plt.close()
-cm = confusion_matrix(y_test, predictions, labels=clf.classes_)
-plot_confusion_matrix(cm,classes,"TREE",activeEncoded)
 
 
 
