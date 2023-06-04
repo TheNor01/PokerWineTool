@@ -3,6 +3,8 @@
 #12 attributes
 
 """
+https://archive.ics.uci.edu/ml/datasets/wine+quality
+
    For more information, read [Cortez et al., 2009].
 
    Input variables (based on physicochemical tests):

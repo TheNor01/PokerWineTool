@@ -12,6 +12,8 @@ from bin.utility.UtilityFunctions import TreeBased,RandomForest,BayesComputingCl
 
 
 """
+https://archive-beta.ics.uci.edu/dataset/158/poker+hand
+
 POKER has 52 card, 13 carte per seme.
 
 Un rank può avere 4 semi
